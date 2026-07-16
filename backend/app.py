@@ -367,13 +367,13 @@ def static_files(path):
 
 
 if __name__ == "__main__":
-    port = 5000
+    port = int(os.environ.get("PORT", 5000))
 
-    def open_browser():
-        webbrowser.open(f"http://localhost:{port}")
-
-    threading.Timer(1.0, open_browser).start()
+    if port == 5000:
+        def open_browser():
+            webbrowser.open(f"http://localhost:{port}")
+        threading.Timer(1.0, open_browser).start()
 
     print(f"\n  Cha de Bebe — Sarah Brandao")
     print(f"  http://localhost:{port}\n")
-    app.run(debug=False, port=port)
+    app.run(debug=False, host="0.0.0.0", port=port)
