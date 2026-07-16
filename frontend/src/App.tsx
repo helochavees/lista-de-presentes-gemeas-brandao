@@ -7,37 +7,45 @@ const CONFIG = {
   momName: "Sarah Brandão",
   babyLine: "Celebrando a chegada da nossa princesa",
   dateText: "Domingo, 06 de setembro",
-  timeText: "16 horas", // ⚠️ confirme o horário
+  timeText: "16 horas",
   locationName: "Alphaville Eusébio",
   locationAddress: "Eusébio — Ceará",
-  pixKey: "SUA-CHAVE-PIX-AQUI", // ⚠️ CPF, e-mail, celular ou chave aleatória
-  pixReceiverName: "Sarah Brandao", // nome cadastrado na chave (sem acentos)
+  pixKey: "SUA-CHAVE-PIX-AQUI",
+  pixReceiverName: "Sarah Brandao",
   pixCity: "Eusebio",
 };
 
-const GIFTS = [
-  { id: "fralda-rn", name: "Pacote de fraldas RN", value: 60 },
-  { id: "fralda-p", name: "Pacote de fraldas P", value: 60 },
-  { id: "fralda-m", name: "Pacote de fraldas M", value: 65 },
-  { id: "bodies", name: "Kit de bodies", value: 90 },
-  { id: "manta", name: "Manta de tricô", value: 120 },
-  { id: "banho", name: "Kit banho da bebê", value: 150 },
-  { id: "trocador", name: "Trocador & pomadas", value: 80 },
-  { id: "higiene", name: "Kit higiene", value: 70 },
-  { id: "naninha", name: "Naninha", value: 55 },
-  { id: "mobile", name: "Mobile para o berço", value: 85 },
-  { id: "carrinho", name: "Cota do carrinho", value: 200 },
-  { id: "berco", name: "Cota do berço", value: 250 },
-  { id: "livre", name: "Mimo à sua escolha", value: null },
-];
+type Gift = {
+  id: string;
+  name: string;
+  value: number | null;
+  photo_url: string | null;
+};
 /* ============================================================ */
+
+/* ---------- Roteamento simples por hash ---------- */
+function useHashRoute() {
+  const [hash, setHash] = useState(() => window.location.hash.replace("#", "") || "");
+
+  useEffect(() => {
+    const onHashChange = () => setHash(window.location.hash.replace("#", "") || "");
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  const go = (path: string) => {
+    window.location.hash = path ? `#${path}` : "";
+  };
+
+  return { route: hash, go };
+}
 
 /* ---------- Pix "copia e cola" (padrão BR Code / EMV) ---------- */
 function normalize(str: string, max: number) {
   return str
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9 .\-@_]/g, "")
+    .replace(/[^a-zA-Z0-9 .\-_]/g, "")
     .trim()
     .slice(0, max);
 }
@@ -194,8 +202,463 @@ function GiftModal({
   );
 }
 
-/* ---------- App ---------- */
-export default function ChaDeBebe() {
+/* ---------- Página de login do admin ---------- */
+function AdminLoginPage({ onLogin }: { onLogin: (token: string) => void }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [logging, setLogging] = useState(false);
+
+  const handleLogin = async () => {
+    setError(null);
+    setLogging(true);
+    const res = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    setLogging(false);
+    if (res.ok) {
+      const data = await res.json();
+      sessionStorage.setItem("admin_token", data.token);
+      onLogin(data.token);
+    } else {
+      setError("Senha incorreta");
+    }
+  };
+
+  return (
+    <div className="admin-page">
+      <div className="admin-card">
+        <p className="modal-eyebrow">Administração</p>
+        <h3 className="modal-title">Acesso restrito</h3>
+        <input
+          className="input"
+          type="password"
+          placeholder="Senha"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+          autoFocus
+        />
+        {error && <p className="admin-error">{error}</p>}
+        <button className="btn btn-solid" disabled={!password || logging} onClick={handleLogin}>
+          {logging ? "Entrando…" : "Entrar"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Dashboard do admin ---------- */
+function AdminDashboard({
+  token,
+  gifts,
+  onLogout,
+  onGiftsChange,
+}: {
+  token: string;
+  gifts: Gift[];
+  onLogout: () => void;
+  onGiftsChange: () => void;
+}) {
+  const [dashboard, setDashboard] = useState<{
+    reservations: { gift_id: string; guest_name: string; amount: number; created_at: string }[];
+    rsvps: { id: number; name: string; people: number; created_at: string }[];
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<"gifts" | "reservations" | "rsvps" | "register">("gifts");
+
+  const [regGift, setRegGift] = useState("");
+  const [regName, setRegName] = useState("");
+  const [regAmount, setRegAmount] = useState("");
+  const [regSaving, setRegSaving] = useState(false);
+  const [regError, setRegError] = useState<string | null>(null);
+  const [regOk, setRegOk] = useState(false);
+
+  const [editGift, setEditGift] = useState<Gift | null>(null);
+  const [giftName, setGiftName] = useState("");
+  const [giftValue, setGiftValue] = useState("");
+  const [giftFile, setGiftFile] = useState<File | null>(null);
+  const [giftPreview, setGiftPreview] = useState<string | null>(null);
+  const [giftSaving, setGiftSaving] = useState(false);
+  const [giftError, setGiftError] = useState<string | null>(null);
+
+  const authHeaders = { Authorization: `Bearer ${token}` };
+
+  const loadDashboard = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/dashboard", { headers: authHeaders });
+      if (res.ok) setDashboard(await res.json());
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { loadDashboard(); }, []);
+
+  const deleteReservation = async (giftId: string) => {
+    await fetch(`/api/admin/reservations/${giftId}`, { method: "DELETE", headers: authHeaders });
+    loadDashboard();
+  };
+
+  const deleteRsvp = async (id: number) => {
+    await fetch(`/api/admin/rsvps/${id}`, { method: "DELETE", headers: authHeaders });
+    loadDashboard();
+  };
+
+  const handleRegister = async () => {
+    setRegError(null);
+    setRegOk(false);
+    setRegSaving(true);
+    const res = await fetch("/api/admin/reservations", {
+      method: "POST",
+      headers: { ...authHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gift_id: regGift,
+        guest_name: regName.trim(),
+        amount: parseFloat(regAmount.replace(",", ".")),
+      }),
+    });
+    setRegSaving(false);
+    if (res.ok) {
+      setRegOk(true);
+      setRegGift("");
+      setRegName("");
+      setRegAmount("");
+      loadDashboard();
+      setTimeout(() => setRegOk(false), 3000);
+    } else {
+      const data = await res.json();
+      setRegError(data.error || "Erro ao registrar");
+    }
+  };
+
+  const totalGifts = dashboard ? dashboard.reservations.reduce((s, r) => s + r.amount, 0) : 0;
+  const totalConfirmed = dashboard ? dashboard.rsvps.reduce((s, r) => s + r.people, 0) : 0;
+  const availableGifts = gifts.filter((g) => !dashboard?.reservations.some((r) => r.gift_id === g.id));
+
+  /* --- Gift management helpers --- */
+  const startNewGift = () => {
+    setEditGift(null);
+    setGiftName("");
+    setGiftValue("");
+    setGiftFile(null);
+    setGiftPreview(null);
+    setGiftError(null);
+  };
+
+  const startEditGift = (g: Gift) => {
+    setEditGift(g);
+    setGiftName(g.name);
+    setGiftValue(g.value != null ? String(g.value) : "");
+    setGiftFile(null);
+    setGiftPreview(g.photo_url || null);
+    setGiftError(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setGiftFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setGiftPreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    } else if (!editGift?.photo_url) {
+      setGiftPreview(null);
+    }
+  };
+
+  const saveGift = async () => {
+    setGiftError(null);
+    setGiftSaving(true);
+    const fd = new FormData();
+    fd.append("name", giftName.trim());
+    fd.append("value", giftValue.trim());
+    if (giftFile) fd.append("photo", giftFile);
+
+    const url = editGift ? `/api/admin/gifts/${editGift.id}` : "/api/admin/gifts";
+    const method = editGift ? "PUT" : "POST";
+    const res = await fetch(url, { method, headers: authHeaders, body: fd });
+    setGiftSaving(false);
+    if (res.ok) {
+      onGiftsChange();
+      startNewGift();
+    } else {
+      const data = await res.json();
+      setGiftError(data.error || "Erro ao salvar");
+    }
+  };
+
+  const deleteGift = async (giftId: string) => {
+    await fetch(`/api/admin/gifts/${giftId}`, { method: "DELETE", headers: authHeaders });
+    onGiftsChange();
+    if (editGift?.id === giftId) startNewGift();
+  };
+
+  return (
+    <div className="admin-page">
+      <div className="admin-card admin-dashboard">
+        <div className="admin-header">
+          <div className="admin-title">
+            <p className="modal-eyebrow">Painel de Administração</p>
+            <h3 className="modal-title">Chá de Bebê — Sarah Brandão</h3>
+          </div>
+          <button className="btn btn-outline admin-logout" onClick={onLogout}>
+            Sair
+          </button>
+        </div>
+
+        <div className="admin-summary">
+          <div className="admin-stat">
+            <span className="admin-stat-num">{dashboard?.reservations.length ?? 0}</span>
+            <span className="admin-stat-label">presentes</span>
+          </div>
+          <div className="admin-stat">
+            <span className="admin-stat-num">{brl(totalGifts)}</span>
+            <span className="admin-stat-label">em mimos</span>
+          </div>
+          <div className="admin-stat">
+            <span className="admin-stat-num">{totalConfirmed}</span>
+            <span className="admin-stat-label">confirmados</span>
+          </div>
+          <div className="admin-stat">
+            <span className="admin-stat-num">{availableGifts.length}</span>
+            <span className="admin-stat-label">disponíveis</span>
+          </div>
+        </div>
+
+        <div className="admin-tabs">
+          {(["gifts", "reservations", "rsvps", "register"] as const).map((t) => (
+            <button
+              key={t}
+              className={`admin-tab ${tab === t ? "active" : ""}`}
+              onClick={() => setTab(t)}
+            >
+              {t === "gifts" ? "Mimos" : t === "reservations" ? "Reservas" : t === "rsvps" ? "Presenças" : "Registrar"}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <p className="loading">Carregando…</p>
+        ) : (
+          <>
+            {/* --- Aba Mimos (gerenciamento de presentes) --- */}
+            {tab === "gifts" && (
+              <div className="gift-manager">
+                <div className="gift-manager-list">
+                  {gifts.map((g) => (
+                    <div
+                      key={g.id}
+                      className={`gift-manager-item ${editGift?.id === g.id ? "active" : ""}`}
+                      onClick={() => startEditGift(g)}
+                    >
+                      <div className="gift-manager-thumb">
+                        {g.photo_url ? (
+                          <img src={g.photo_url} alt={g.name} />
+                        ) : (
+                          <span className="gift-manager-noimg">📦</span>
+                        )}
+                      </div>
+                      <div className="gift-manager-info">
+                        <span className="gift-manager-name">{g.name}</span>
+                        <span className="gift-manager-value">
+                          {g.value != null ? brl(g.value) : "livre"}
+                        </span>
+                      </div>
+                      <button
+                        className="admin-del-btn"
+                        onClick={(e) => { e.stopPropagation(); deleteGift(g.id); }}
+                        title="Excluir presente"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="gift-manager-form">
+                  <h4>{editGift ? "Editar presente" : "Novo presente"}</h4>
+                  <input
+                    className="input"
+                    placeholder="Nome do presente"
+                    value={giftName}
+                    onChange={(e) => setGiftName(e.target.value)}
+                  />
+                  <input
+                    className="input"
+                    placeholder="Valor (R$) — vazio = livre"
+                    inputMode="decimal"
+                    value={giftValue}
+                    onChange={(e) => setGiftValue(e.target.value)}
+                  />
+                  <div className="gift-manager-photo">
+                    <input type="file" accept="image/*" onChange={handleFileChange} />
+                    {giftPreview && (
+                      <div className="gift-preview-wrap">
+                        <img src={giftPreview} alt="preview" className="gift-preview-img" />
+                        <button
+                          className="admin-del-btn"
+                          onClick={() => {
+                            setGiftFile(null);
+                            setGiftPreview(null);
+                            if (editGift) {
+                              fetch(`/api/admin/gifts/${editGift.id}/photo`, { method: "DELETE", headers: authHeaders });
+                            }
+                          }}
+                        >
+                          ✕ remover foto
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {giftError && <p className="admin-error">{giftError}</p>}
+                  <div className="gift-manager-actions">
+                    <button className="btn btn-solid" disabled={!giftName.trim() || giftSaving} onClick={saveGift}>
+                      {giftSaving ? "Salvando…" : editGift ? "Atualizar" : "Adicionar"}
+                    </button>
+                    {editGift && (
+                      <button className="btn btn-outline" onClick={startNewGift}>
+                        Cancelar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* --- Aba Reservas --- */}
+            {tab === "reservations" && (
+              <div className="admin-table-wrap">
+                {dashboard && dashboard.reservations.length === 0 ? (
+                  <p className="admin-empty">Nenhum presente registrado ainda.</p>
+                ) : (
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Presente</th>
+                        <th>Convidado(a)</th>
+                        <th>Valor</th>
+                        <th>Data</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dashboard?.reservations.map((r) => {
+                        const gift = gifts.find((g) => g.id === r.gift_id);
+                        return (
+                          <tr key={r.gift_id}>
+                            <td>{gift?.name ?? r.gift_id}</td>
+                            <td>{r.guest_name}</td>
+                            <td>{brl(r.amount)}</td>
+                            <td>{new Date(r.created_at).toLocaleDateString("pt-BR")}</td>
+                            <td>
+                              <button className="admin-del-btn" onClick={() => deleteReservation(r.gift_id)}>
+                                ✕
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {/* --- Aba Presenças --- */}
+            {tab === "rsvps" && (
+              <div className="admin-table-wrap">
+                {dashboard && dashboard.rsvps.length === 0 ? (
+                  <p className="admin-empty">Nenhuma presença confirmada ainda.</p>
+                ) : (
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Nome</th>
+                        <th>Pessoas</th>
+                        <th>Data</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dashboard?.rsvps.map((r) => (
+                        <tr key={r.id}>
+                          <td>{r.name}</td>
+                          <td>{r.people}</td>
+                          <td>{new Date(r.created_at).toLocaleDateString("pt-BR")}</td>
+                          <td>
+                            <button className="admin-del-btn" onClick={() => deleteRsvp(r.id)}>
+                              ✕
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {/* --- Aba Registrar (manual) --- */}
+            {tab === "register" && (
+              <div className="admin-register">
+                <p className="modal-text">
+                  Registre manualmente um presente — útil quando alguém entrega em mãos.
+                </p>
+                <select
+                  className="input admin-select"
+                  value={regGift}
+                  onChange={(e) => {
+                    setRegGift(e.target.value);
+                    const g = gifts.find((g) => g.id === e.target.value);
+                    setRegAmount(g?.value != null ? String(g.value) : "");
+                  }}
+                >
+                  <option value="">Escolha o presente…</option>
+                  {gifts.map((g) => {
+                    const already = dashboard?.reservations.some((r) => r.gift_id === g.id);
+                    return (
+                      <option key={g.id} value={g.id} disabled={already}>
+                        {g.name} {already ? "(já presenteado)" : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+                <input
+                  className="input"
+                  placeholder="Nome do(a) convidado(a)"
+                  value={regName}
+                  onChange={(e) => setRegName(e.target.value)}
+                  maxLength={40}
+                />
+                <input
+                  className="input"
+                  placeholder="Valor (R$)"
+                  inputMode="decimal"
+                  value={regAmount}
+                  onChange={(e) => setRegAmount(e.target.value)}
+                />
+                {regError && <p className="admin-error">{regError}</p>}
+                {regOk && <p className="admin-ok">Presente registrado!</p>}
+                <button
+                  className="btn btn-solid"
+                  disabled={!regGift || !regName.trim() || !regAmount || regSaving}
+                  onClick={handleRegister}
+                >
+                  {regSaving ? "Registrando…" : "Registrar presente"}
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Página inicial ---------- */
+function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () => void }) {
   const [reservations, setReservations] = useState<Record<string, { name: string; amount: number; date: string }>>({});
   const [loading, setLoading] = useState(true);
   const [openGift, setOpenGift] = useState<{ id: string; name: string; value: number | null } | null>(null);
@@ -238,9 +701,7 @@ export default function ChaDeBebe() {
   };
 
   return (
-    <div className="page">
-      <style>{css}</style>
-
+    <>
       {/* HERO */}
       <header className="hero">
         <div className="hero-frame">
@@ -287,10 +748,15 @@ export default function ChaDeBebe() {
           <p className="loading">Preparando a lista…</p>
         ) : (
           <div className="gifts">
-            {GIFTS.map((g) => {
+            {gifts.map((g) => {
               const r = reservations[g.id];
               return (
                 <div key={g.id} className={`gift frame ${r ? "taken" : ""}`}>
+                  {g.photo_url && (
+                    <div className="gift-photo">
+                      <img src={g.photo_url} alt={g.name} />
+                    </div>
+                  )}
                   <p className="gift-name">{g.name}</p>
                   <p className="gift-value">
                     {g.value ? brl(g.value) : "valor à sua escolha"}
@@ -347,6 +813,9 @@ export default function ChaDeBebe() {
       <footer className="footer">
         <Ornament />
         <p>Com amor, aguardamos você — família Brandão</p>
+        <button className="admin-link" onClick={onOpenAdmin}>
+          admin
+        </button>
       </footer>
 
       {openGift && (
@@ -357,6 +826,69 @@ export default function ChaDeBebe() {
         />
       )}
       {thanks && <div className="toast">Obrigada pelo carinho, {thanks}!</div>}
+    </>
+  );
+}
+
+/* ---------- App ---------- */
+export default function ChaDeBebe() {
+  const { route, go } = useHashRoute();
+  const [adminToken, setAdminToken] = useState(sessionStorage.getItem("admin_token") || "");
+  const [gifts, setGifts] = useState<Gift[]>([]);
+  const [giftsLoading, setGiftsLoading] = useState(true);
+
+  const isAdminRoute = route === "admin" || route.startsWith("admin/");
+
+  const loadGifts = async () => {
+    try {
+      const res = await fetch("/api/gifts");
+      if (res.ok) {
+        const data = await res.json();
+        setGifts(data.gifts || []);
+      }
+    } catch {}
+    setGiftsLoading(false);
+  };
+
+  useEffect(() => { loadGifts(); }, []);
+
+  useEffect(() => {
+    if (isAdminRoute && !adminToken) {
+    }
+  }, [isAdminRoute, adminToken]);
+
+  const handleLogin = (token: string) => {
+    setAdminToken(token);
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("admin_token");
+    setAdminToken("");
+    go("");
+  };
+
+  if (giftsLoading) {
+    return (
+      <div className="page">
+        <style>{css}</style>
+        <div className="loading" style={{ paddingTop: 120 }}>Carregando…</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page">
+      <style>{css}</style>
+
+      {isAdminRoute ? (
+        adminToken ? (
+          <AdminDashboard token={adminToken} gifts={gifts} onLogout={handleLogout} onGiftsChange={loadGifts} />
+        ) : (
+          <AdminLoginPage onLogin={handleLogin} />
+        )
+      ) : (
+        <LandingPage gifts={gifts} onOpenAdmin={() => go("admin")} />
+      )}
     </div>
   );
 }
@@ -544,4 +1076,127 @@ strong { font-weight: 500; }
   .btn, .gift { transition: none; }
   .gift:hover:not(.taken) { transform: none; }
 }
+
+/* ADMIN */
+.admin-link {
+  display: block; margin: 18px auto 0; background: none; border: none;
+  color: var(--dourado); font-size: 11px; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.25em; opacity: 0.85;
+  transition: opacity 0.15s, color 0.15s;
+}
+.admin-link:hover { opacity: 1; color: var(--tinta); }
+
+.admin-page {
+  min-height: 100vh; padding: 48px 24px;
+  display: flex; align-items: flex-start; justify-content: center;
+  background: var(--porcelana);
+}
+.admin-card {
+  width: 100%; max-width: 760px; padding: 40px 36px;
+  border: 1px solid var(--dourado); background: #FFFDFB;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.admin-card .modal-title { font-size: 26px; }
+.admin-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  flex-wrap: wrap; gap: 16px;
+  border-bottom: 1px solid rgba(176,141,87,0.25); padding-bottom: 16px;
+}
+.admin-title { text-align: left; }
+.admin-logout { padding: 8px 18px; font-size: 11px; letter-spacing: 0.18em; align-self: flex-start; }
+
+.admin-summary { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-start; }
+.admin-stat {
+  background: var(--rose); padding: 14px 20px; text-align: center;
+  min-width: 100px; display: flex; flex-direction: column; flex: 1; min-width: 120px;
+}
+.admin-stat-num {
+  font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 500;
+  color: var(--tinta);
+}
+.admin-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.3em; color: var(--dourado); }
+
+.admin-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--dourado); margin-top: 4px; }
+.admin-tab {
+  flex: 1; background: none; border: none; padding: 10px 8px; cursor: pointer;
+  font-family: 'Jost', sans-serif; font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.15em; color: var(--rosa-antigo);
+  border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+}
+.admin-tab.active { color: var(--tinta); border-bottom-color: var(--dourado); }
+.admin-tab:hover { color: var(--tinta); }
+.admin-table-wrap { max-height: 400px; overflow-y: auto; width: 100%; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.admin-table th {
+  text-transform: uppercase; letter-spacing: 0.15em; font-size: 10px; font-weight: 400;
+  color: var(--dourado); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--dourado);
+  position: sticky; top: 0; background: #FFFDFB;
+}
+.admin-table td { padding: 8px 10px; border-bottom: 1px solid rgba(176,141,87,0.2); }
+.admin-del-btn {
+  background: none; border: none; cursor: pointer; color: var(--rosa-antigo);
+  font-size: 12px; padding: 2px 6px; opacity: 0.6; transition: opacity 0.15s;
+}
+.admin-del-btn:hover { opacity: 1; color: #c0392b; }
+.admin-empty { text-align: center; opacity: 0.6; padding: 24px 0; font-size: 14px; }
+.admin-register { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; width: 100%; max-width: 420px; }
+.admin-register .input { width: 100%; min-width: auto; }
+.admin-select { min-width: auto !important; }
+.admin-error { color: #c0392b; font-size: 13px; margin: 0; }
+.admin-ok { color: #27ae60; font-size: 13px; margin: 0; font-weight: 500; }
+@media (max-width: 640px) {
+  .admin-card { padding: 28px 20px; }
+  .admin-summary { gap: 8px; }
+  .admin-stat { min-width: 80px; padding: 12px 10px; }
+  .admin-stat-num { font-size: 20px; }
+  .admin-table th, .admin-table td { padding: 8px 6px; font-size: 12px; }
+}
+
+/* GIFT PHOTO (landing page) */
+.gift-photo { width: 100%; aspect-ratio: 4/3; overflow: hidden; background: var(--rose); }
+.gift-photo img { width: 100%; height: 100%; object-fit: cover; }
+
+/* GIFT MANAGER (admin) */
+.gift-manager { display: flex; gap: 24px; width: 100%; }
+.gift-manager-list {
+  flex: 1; display: flex; flex-direction: column; gap: 8px;
+  max-height: 480px; overflow-y: auto;
+}
+.gift-manager-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px; border: 1px solid rgba(176,141,87,0.2); background: #FFFDFB;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.gift-manager-item:hover { border-color: var(--dourado); }
+.gift-manager-item.active { border-color: var(--dourado); background: var(--rose); }
+.gift-manager-thumb {
+  width: 48px; height: 48px; flex-shrink: 0; overflow: hidden;
+  background: var(--rose); display: flex; align-items: center; justify-content: center;
+}
+.gift-manager-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.gift-manager-noimg { font-size: 20px; }
+.gift-manager-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.gift-manager-name { font-size: 14px; font-weight: 400; }
+.gift-manager-value {
+  font-size: 11px; color: var(--dourado); text-transform: uppercase; letter-spacing: 0.1em;
+}
+.gift-manager-form {
+  flex: 1; display: flex; flex-direction: column; gap: 12px; align-items: stretch;
+}
+.gift-manager-form h4 {
+  font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; margin: 0;
+}
+.gift-manager-form .input { width: 100%; min-width: auto; }
+.gift-manager-photo { display: flex; flex-direction: column; gap: 8px; }
+.gift-manager-photo input[type="file"] {
+  font-family: 'Jost', sans-serif; font-size: 13px; color: var(--tinta);
+}
+.gift-preview-wrap { display: flex; align-items: center; gap: 10px; }
+.gift-preview-img { width: 80px; height: 80px; object-fit: cover; border: 1px solid var(--dourado); }
+.gift-manager-actions { display: flex; gap: 10px; }
+@media (max-width: 700px) {
+  .gift-manager { flex-direction: column; }
+  .gift-manager-list { max-height: 240px; }
+}
 `;
+
