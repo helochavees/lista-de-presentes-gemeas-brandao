@@ -31,19 +31,147 @@ ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
 _admin_tokens = set()
 
 DEFAULT_GIFTS = [
-    ("fralda-rn", "Pacote de fraldas RN", 60),
-    ("fralda-p", "Pacote de fraldas P", 60),
-    ("fralda-m", "Pacote de fraldas M", 65),
-    ("bodies", "Kit de bodies", 90),
-    ("manta", "Manta de tricô", 120),
-    ("banho", "Kit banho da bebê", 150),
-    ("trocador", "Trocador & pomadas", 80),
-    ("higiene", "Kit higiene", 70),
-    ("naninha", "Naninha", 55),
-    ("mobile", "Mobile para o berço", 85),
-    ("carrinho", "Cota do carrinho", 200),
-    ("berco", "Cota do berço", 250),
-    ("livre", "Mimo à sua escolha", None),
+    # (id, name, value, category)
+    ("acessorios-chupetas", "Chupetas (2 unidades)", 50, "acessorios"),
+    ("acessorios-prendedores-chupeta", "Prendedores de chupeta (4 unidades)", 60, "acessorios"),
+
+    ("alim-escova-mamadeiras-1", "Escova para mamadeiras (1 unidade)", 40, "alimentacao"),
+    ("alim-escova-mamadeiras-2", "Escova para mamadeiras (1 unidade)", 40, "alimentacao"),
+    ("alim-bicos-extras-1", "Bicos extras para mamadeira (4 unidades)", 50, "alimentacao"),
+    ("alim-bicos-extras-2", "Bicos extras para mamadeira (4 unidades)", 50, "alimentacao"),
+    ("alim-bicos-extras-3", "Bicos extras para mamadeira (4 unidades)", 50, "alimentacao"),
+    ("alim-kit-mamadeiras-1", "Kit Mamadeiras 1 (2 mamadeiras 60ml + 1 escova)", 180, "alimentacao"),
+    ("alim-kit-mamadeiras-2", "Kit Mamadeiras 2 (2 mamadeiras 60ml + 1 escova)", 180, "alimentacao"),
+    ("alim-kit-mamadeiras-3", "Kit Mamadeiras 3 (2 mamadeiras 150ml + 2 bicos extras)", 180, "alimentacao"),
+    ("alim-kit-mamadeiras-4", "Kit Mamadeiras 4 (2 mamadeiras 150ml + 2 bicos extras)", 180, "alimentacao"),
+    ("alim-kit-mamadeiras-5", "Kit Mamadeiras 5 (2 mamadeiras 240ml + 2 bicos extras)", 200, "alimentacao"),
+    ("alim-kit-mamadeiras-6", "Kit Mamadeiras 6 (2 mamadeiras 240ml + 2 bicos extras)", 200, "alimentacao"),
+    ("alim-kit-alimentacao-1", "Kit Alimentação 1 (porta-leite em pó + porta-mamadeira térmico)", 180, "alimentacao"),
+    ("alim-kit-alimentacao-2", "Kit Alimentação 2 (porta-leite em pó + porta-mamadeira térmico)", 180, "alimentacao"),
+    ("alim-garrafas-termicas", "Garrafas térmicas (2 unidades)", 180, "alimentacao"),
+    ("alim-almofada-amamentacao", "Almofada de amamentação para gêmeos", 400, "alimentacao"),
+    ("alim-esterilizador", "Esterilizador de mamadeiras", 500, "alimentacao"),
+    ("alim-aquecedor", "Aquecedor de mamadeiras", 450, "alimentacao"),
+
+    ("higiene-shampoo-1", "Shampoo (1 unidade)", 40, "higiene"),
+    ("higiene-shampoo-2", "Shampoo (1 unidade)", 40, "higiene"),
+    ("higiene-sabonete-1", "Sabonete líquido (1 unidade)", 40, "higiene"),
+    ("higiene-sabonete-2", "Sabonete líquido (1 unidade)", 40, "higiene"),
+    ("higiene-creme-assadura-1", "Creme para assadura (1 unidade)", 50, "higiene"),
+    ("higiene-creme-assadura-2", "Creme para assadura (1 unidade)", 50, "higiene"),
+    ("higiene-hidratante-1", "Hidratante (1 unidade)", 50, "higiene"),
+    ("higiene-hidratante-2", "Hidratante (1 unidade)", 50, "higiene"),
+    ("higiene-oleo-corporal-1", "Óleo corporal (1 unidade)", 50, "higiene"),
+    ("higiene-oleo-corporal-2", "Óleo corporal (1 unidade)", 50, "higiene"),
+    ("higiene-algodao-1", "Algodão (2 pacotes)", 50, "higiene"),
+    ("higiene-algodao-2", "Algodão (2 pacotes)", 50, "higiene"),
+    ("higiene-algodao-3", "Algodão (2 pacotes)", 50, "higiene"),
+    ("higiene-algodao-4", "Algodão (2 pacotes)", 50, "higiene"),
+    ("higiene-algodao-5", "Algodão (2 pacotes)", 50, "higiene"),
+    ("higiene-lencos-umedecidos-1", "Lenços umedecidos (5 pacotes)", 75, "higiene"),
+    ("higiene-lencos-umedecidos-2", "Lenços umedecidos (5 pacotes)", 75, "higiene"),
+    ("higiene-lencos-umedecidos-3", "Lenços umedecidos (5 pacotes)", 75, "higiene"),
+    ("higiene-lencos-umedecidos-4", "Lenços umedecidos (5 pacotes)", 75, "higiene"),
+    ("higiene-lencos-umedecidos-5", "Lenços umedecidos (5 pacotes)", 75, "higiene"),
+    ("higiene-lencos-umedecidos-6", "Lenços umedecidos (5 pacotes)", 75, "higiene"),
+    ("higiene-aspirador-nasal-1", "Aspirador nasal (1 unidade)", 90, "higiene"),
+    ("higiene-aspirador-nasal-2", "Aspirador nasal (1 unidade)", 90, "higiene"),
+    ("higiene-termometro-digital", "Termômetro digital", 180, "higiene"),
+    ("higiene-inalador", "Inalador", 250, "higiene"),
+
+    ("roupa-toucas-1", "Toucas (2 unidades)", 60, "roupinhas"),
+    ("roupa-toucas-2", "Toucas (2 unidades)", 60, "roupinhas"),
+    ("roupa-luvas-rn-1", "Luvas RN (2 pares)", 60, "roupinhas"),
+    ("roupa-luvas-rn-2", "Luvas RN (2 pares)", 60, "roupinhas"),
+    ("roupa-bodies-rn-1", "Bodies RN (3 unidades)", 150, "roupinhas"),
+    ("roupa-bodies-rn-2", "Bodies RN (3 unidades)", 150, "roupinhas"),
+    ("roupa-bodies-rn-3", "Bodies RN (3 unidades)", 150, "roupinhas"),
+    ("roupa-bodies-rn-4", "Bodies RN (3 unidades)", 150, "roupinhas"),
+    ("roupa-bodies-p-1", "Bodies P (3 unidades)", 150, "roupinhas"),
+    ("roupa-bodies-p-2", "Bodies P (3 unidades)", 150, "roupinhas"),
+    ("roupa-bodies-p-3", "Bodies P (3 unidades)", 150, "roupinhas"),
+    ("roupa-bodies-p-4", "Bodies P (3 unidades)", 150, "roupinhas"),
+    ("roupa-macacoes-rn-1", "Macacões RN (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-rn-2", "Macacões RN (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-rn-3", "Macacões RN (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-rn-4", "Macacões RN (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-rn-5", "Macacões RN (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-rn-6", "Macacões RN (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-p-1", "Macacões P (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-p-2", "Macacões P (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-p-3", "Macacões P (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-p-4", "Macacões P (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-p-5", "Macacões P (2 unidades)", 180, "roupinhas"),
+    ("roupa-macacoes-p-6", "Macacões P (2 unidades)", 180, "roupinhas"),
+    ("roupa-calcas-mijao-1", "Calças mijão (3 unidades)", 150, "roupinhas"),
+    ("roupa-calcas-mijao-2", "Calças mijão (3 unidades)", 150, "roupinhas"),
+    ("roupa-calcas-mijao-3", "Calças mijão (3 unidades)", 150, "roupinhas"),
+    ("roupa-calcas-mijao-4", "Calças mijão (3 unidades)", 150, "roupinhas"),
+    ("roupa-meias-1", "Meias (6 pares)", 150, "roupinhas"),
+    ("roupa-meias-2", "Meias (6 pares)", 150, "roupinhas"),
+    ("roupa-casaquinhos-1", "Casaquinhos (2 unidades)", 280, "roupinhas"),
+    ("roupa-casaquinhos-2", "Casaquinhos (2 unidades)", 280, "roupinhas"),
+    ("roupa-pijamas-1", "Pijamas (2 unidades)", 300, "roupinhas"),
+    ("roupa-pijamas-2", "Pijamas (2 unidades)", 300, "roupinhas"),
+    ("roupa-saidas-maternidade-1", "Saídas de maternidade (2 unidades)", 300, "roupinhas"),
+    ("roupa-saidas-maternidade-2", "Saídas de maternidade (2 unidades)", 300, "roupinhas"),
+
+    ("enxoval-babadores-1", "Babadores (2 unidades)", 70, "enxoval"),
+    ("enxoval-babadores-2", "Babadores (2 unidades)", 70, "enxoval"),
+    ("enxoval-babadores-3", "Babadores (2 unidades)", 70, "enxoval"),
+    ("enxoval-babadores-4", "Babadores (2 unidades)", 70, "enxoval"),
+    ("enxoval-mantas-1", "Mantas (3 unidades)", 180, "enxoval"),
+    ("enxoval-mantas-2", "Mantas (3 unidades)", 180, "enxoval"),
+    ("enxoval-fraldas-boca-1", "Fraldas de boca (6 unidades)", 150, "enxoval"),
+    ("enxoval-fraldas-boca-2", "Fraldas de boca (6 unidades)", 150, "enxoval"),
+    ("enxoval-panos-ombro-1", "Panos de ombro (6 unidades)", 150, "enxoval"),
+    ("enxoval-panos-ombro-2", "Panos de ombro (6 unidades)", 150, "enxoval"),
+
+    ("banho-banheira", "Banheira", 300, "banho-troca"),
+    ("banho-suporte", "Suporte para banheira", 300, "banho-troca"),
+    ("banho-trocador", "Trocador", 280, "banho-troca"),
+    ("banho-capas-trocador-1", "Capas para trocador (2 unidades)", 120, "banho-troca"),
+    ("banho-capas-trocador-2", "Capas para trocador (2 unidades)", 120, "banho-troca"),
+    ("banho-trocador-impermeavel", "Trocador impermeável", 180, "banho-troca"),
+    ("banho-toalhas-capuz", "Toalhas com capuz (2 unidades)", 180, "banho-troca"),
+    ("banho-toalhas-fralda-1", "Toalhas-fralda (6 unidades)", 180, "banho-troca"),
+    ("banho-toalhas-fralda-2", "Toalhas-fralda (6 unidades)", 180, "banho-troca"),
+    ("banho-termometro", "Termômetro para banho", 120, "banho-troca"),
+    ("banho-kit-higiene-1", "Kit Higiene 1 (escova, pente e cortador de unhas)", 120, "banho-troca"),
+    ("banho-kit-higiene-2", "Kit Higiene 2 (escova, pente e cortador de unhas)", 120, "banho-troca"),
+
+    ("quarto-berco-1", "Berço", 1300, "quarto"),
+    ("quarto-berco-2", "Berço", 1300, "quarto"),
+    ("quarto-colchao-1", "Colchão para berço", 350, "quarto"),
+    ("quarto-colchao-2", "Colchão para berço", 350, "quarto"),
+    ("quarto-lencois-1", "Jogos de lençol para berço (2 unidades)", 300, "quarto"),
+    ("quarto-lencois-2", "Jogos de lençol para berço (2 unidades)", 300, "quarto"),
+    ("quarto-protetores-1", "Protetores impermeáveis para colchão (2 unidades)", 300, "quarto"),
+    ("quarto-protetores-2", "Protetores impermeáveis para colchão (2 unidades)", 300, "quarto"),
+    ("quarto-berco-portatil", "Berço portátil (Pack and Play)", 900, "quarto"),
+    ("quarto-comoda", "Cômoda", 1800, "quarto"),
+    ("quarto-baba-eletronica", "Babá eletrônica", 900, "quarto"),
+    ("quarto-ruido-branco", "Máquina de ruído branco", 450, "quarto"),
+
+    ("passeio-bebe-conforto-1", "Bebê-conforto", 1000, "passeio-descanso"),
+    ("passeio-bebe-conforto-2", "Bebê-conforto", 1000, "passeio-descanso"),
+    ("passeio-cadeirinha-auto-1", "Cadeirinha para automóvel", 1100, "passeio-descanso"),
+    ("passeio-cadeirinha-auto-2", "Cadeirinha para automóvel", 1100, "passeio-descanso"),
+    ("passeio-cadeira-balanco-1", "Cadeira de balanço elétrica", 1200, "passeio-descanso"),
+    ("passeio-cadeira-balanco-2", "Cadeira de balanço elétrica", 1200, "passeio-descanso"),
+    ("passeio-canguru", "Canguru ergonômico", 450, "passeio-descanso"),
+    ("passeio-mochila-maternidade", "Mochila maternidade", 350, "passeio-descanso"),
+    ("passeio-carrinho-duplo", "Carrinho de bebê duplo", 2000, "passeio-descanso"),
+
+    ("fralda-rn", "Fraldas RN (2 pacotes)", 150, "fraldas"),
+    ("fralda-p", "Fraldas P (2 pacotes)", 150, "fraldas"),
+    ("fralda-m-1", "Fraldas M (2 pacotes)", 170, "fraldas"),
+    ("fralda-m-2", "Fraldas M (2 pacotes)", 170, "fraldas"),
+    ("fralda-g-1", "Fraldas G (2 pacotes)", 180, "fraldas"),
+    ("fralda-g-2", "Fraldas G (2 pacotes)", 180, "fraldas"),
+    ("fralda-xg", "Fraldas XG (2 pacotes)", 180, "fraldas"),
+
+    ("dinheiro-presente", "Presente em dinheiro", None, "dinheiro"),
 ]
 
 
@@ -54,10 +182,10 @@ def _photo_path(gift_id: str):
 def _ensure_default_gifts(db):
     count = db.execute("SELECT COUNT(*) FROM gifts").fetchone()[0]
     if count == 0:
-        for gift_id, name, value in DEFAULT_GIFTS:
+        for gift_id, name, value, category in DEFAULT_GIFTS:
             db.execute(
-                "INSERT INTO gifts (id, name, value) VALUES (?, ?, ?)",
-                (gift_id, name, value),
+                "INSERT INTO gifts (id, name, value, category) VALUES (?, ?, ?, ?)",
+                (gift_id, name, value, category),
             )
         db.commit()
 
@@ -73,9 +201,15 @@ def get_db():
             CREATE TABLE IF NOT EXISTS gifts (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
-                value REAL
+                value REAL,
+                category TEXT NOT NULL DEFAULT ''
             )
         """)
+        try:
+            db.execute("ALTER TABLE gifts ADD COLUMN category TEXT NOT NULL DEFAULT ''")
+            db.commit()
+        except sqlite3.OperationalError:
+            pass
         db.execute("""
             CREATE TABLE IF NOT EXISTS reservations (
                 gift_id TEXT PRIMARY KEY,
@@ -108,15 +242,8 @@ def close_db(_exception=None):
 
 @app.route("/api/reservations", methods=["GET"])
 def get_reservations():
-    rows = get_db().execute("SELECT gift_id, guest_name, amount, created_at FROM reservations").fetchall()
-    result = {}
-    for r in rows:
-        result[r["gift_id"]] = {
-            "name": r["guest_name"],
-            "amount": r["amount"],
-            "date": r["created_at"],
-        }
-    return jsonify(result)
+    rows = get_db().execute("SELECT gift_id FROM reservations").fetchall()
+    return jsonify({r["gift_id"]: True for r in rows})
 
 
 @app.route("/api/reservations", methods=["POST"])
@@ -259,6 +386,7 @@ def _gift_response(row):
         "id": row["id"],
         "name": row["name"],
         "value": row["value"],
+        "category": row["category"],
         "photo_url": f"/api/gifts/{row['id']}/photo" if os.path.exists(_photo_path(row["id"])) else None,
     }
 
@@ -266,7 +394,7 @@ def _gift_response(row):
 @app.route("/api/gifts", methods=["GET"])
 def get_gifts():
     db = get_db()
-    rows = db.execute("SELECT id, name, value FROM gifts ORDER BY id").fetchall()
+    rows = db.execute("SELECT id, name, value, category FROM gifts ORDER BY id").fetchall()
     return jsonify({"gifts": [_gift_response(r) for r in rows]})
 
 
@@ -284,6 +412,7 @@ def admin_create_gift():
     name = request.form.get("name", "").strip()
     value_field = request.form.get("value", "").strip()
     value = float(value_field.replace(",", ".")) if value_field else None
+    category = request.form.get("category", "").strip()
 
     if not name:
         return jsonify({"error": "Nome do presente e obrigatorio"}), 400
@@ -294,7 +423,10 @@ def admin_create_gift():
 
     db = get_db()
     try:
-        db.execute("INSERT INTO gifts (id, name, value) VALUES (?, ?, ?)", (gift_id, name, value))
+        db.execute(
+            "INSERT INTO gifts (id, name, value, category) VALUES (?, ?, ?, ?)",
+            (gift_id, name, value, category),
+        )
     except sqlite3.IntegrityError:
         return jsonify({"error": "Ja existe um presente com esse id"}), 409
 
@@ -303,7 +435,7 @@ def admin_create_gift():
         photo.save(_photo_path(gift_id))
 
     db.commit()
-    row = db.execute("SELECT id, name, value FROM gifts WHERE id = ?", (gift_id,)).fetchone()
+    row = db.execute("SELECT id, name, value, category FROM gifts WHERE id = ?", (gift_id,)).fetchone()
     return jsonify(_gift_response(row)), 201
 
 
@@ -313,6 +445,7 @@ def admin_update_gift(gift_id):
     name = request.form.get("name", "").strip()
     value_field = request.form.get("value", "").strip()
     value = float(value_field.replace(",", ".")) if value_field else None
+    category = request.form.get("category", "").strip()
 
     if not name:
         return jsonify({"error": "Nome do presente e obrigatorio"}), 400
@@ -322,14 +455,14 @@ def admin_update_gift(gift_id):
     if not existing:
         return jsonify({"error": "Presente nao encontrado"}), 404
 
-    db.execute("UPDATE gifts SET name = ?, value = ? WHERE id = ?", (name, value, gift_id))
+    db.execute("UPDATE gifts SET name = ?, value = ?, category = ? WHERE id = ?", (name, value, category, gift_id))
 
     photo = request.files.get("photo")
     if photo and photo.filename and photo.content_type and photo.content_type.startswith("image/"):
         photo.save(_photo_path(gift_id))
 
     db.commit()
-    row = db.execute("SELECT id, name, value FROM gifts WHERE id = ?", (gift_id,)).fetchone()
+    row = db.execute("SELECT id, name, value, category FROM gifts WHERE id = ?", (gift_id,)).fetchone()
     return jsonify(_gift_response(row))
 
 
@@ -368,12 +501,18 @@ def static_files(path):
 
 if __name__ == "__main__":
     port = 5000
+    has_static_build = os.path.exists(os.path.join(app.static_folder, "index.html"))
 
-    def open_browser():
-        webbrowser.open(f"http://localhost:{port}")
+    if has_static_build:
+        def open_browser():
+            webbrowser.open(f"http://localhost:{port}")
 
-    threading.Timer(1.0, open_browser).start()
+        threading.Timer(1.0, open_browser).start()
+        print(f"\n  Cha de Bebe — Sarah Brandao")
+        print(f"  http://localhost:{port}\n")
+    else:
+        print(f"\n  Cha de Bebe — Sarah Brandao (backend/API)")
+        print(f"  API rodando em http://localhost:{port}")
+        print(f"  Abra o site em http://localhost:5173\n")
 
-    print(f"\n  Cha de Bebe — Sarah Brandao")
-    print(f"  http://localhost:{port}\n")
     app.run(debug=False, port=port)

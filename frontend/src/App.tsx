@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
    ============================================================ */
 const CONFIG = {
   momName: "Sarah Brandão",
-  babyLine: "Celebrando a chegada da nossa princesa",
+  babyLine: "Celebrando a chegada das nossas princesas",
   dateText: "Domingo, 06 de setembro",
   timeText: "16 horas",
   locationName: "Alphaville Eusébio",
@@ -19,8 +19,24 @@ type Gift = {
   id: string;
   name: string;
   value: number | null;
+  category: string;
   photo_url: string | null;
 };
+
+/* Categorias da lista de presentes (ordem de exibição) */
+const CATEGORIES: { key: string; label: string }[] = [
+  { key: "quarto", label: "Quarto" },
+  { key: "banho-troca", label: "Banho e Troca" },
+  { key: "alimentacao", label: "Alimentação" },
+  { key: "passeio-descanso", label: "Passeio e Descanso" },
+  { key: "roupinhas", label: "Roupinhas" },
+  { key: "enxoval", label: "Enxoval" },
+  { key: "higiene", label: "Higiene" },
+  { key: "acessorios", label: "Acessórios" },
+  { key: "fraldas", label: "Fraldas" },
+];
+const OUTROS_LABEL = "Outros";
+const MONEY_CATEGORY = "dinheiro";
 /* ============================================================ */
 
 /* ---------- Roteamento simples por hash ---------- */
@@ -138,7 +154,7 @@ function GiftModal({
         <button className="modal-close" onClick={onClose} aria-label="Fechar">
           ✕
         </button>
-        <p className="modal-eyebrow">Lista de mimos</p>
+        <p className="modal-eyebrow">Lista de presentes</p>
         <h3 className="modal-title">{gift.name}</h3>
 
         {step === 1 && (
@@ -157,7 +173,7 @@ function GiftModal({
             {gift.value === null && (
               <input
                 className="input"
-                placeholder="Valor do mimo (ex: 50)"
+                placeholder="Valor do presente (ex: 50)"
                 inputMode="decimal"
                 value={freeValue}
                 onChange={(e) => setFreeValue(e.target.value)}
@@ -278,6 +294,7 @@ function AdminDashboard({
   const [editGift, setEditGift] = useState<Gift | null>(null);
   const [giftName, setGiftName] = useState("");
   const [giftValue, setGiftValue] = useState("");
+  const [giftCategory, setGiftCategory] = useState(CATEGORIES[0].key);
   const [giftFile, setGiftFile] = useState<File | null>(null);
   const [giftPreview, setGiftPreview] = useState<string | null>(null);
   const [giftSaving, setGiftSaving] = useState(false);
@@ -342,6 +359,7 @@ function AdminDashboard({
     setEditGift(null);
     setGiftName("");
     setGiftValue("");
+    setGiftCategory(CATEGORIES[0].key);
     setGiftFile(null);
     setGiftPreview(null);
     setGiftError(null);
@@ -351,6 +369,7 @@ function AdminDashboard({
     setEditGift(g);
     setGiftName(g.name);
     setGiftValue(g.value != null ? String(g.value) : "");
+    setGiftCategory(g.category || CATEGORIES[0].key);
     setGiftFile(null);
     setGiftPreview(g.photo_url || null);
     setGiftError(null);
@@ -374,6 +393,7 @@ function AdminDashboard({
     const fd = new FormData();
     fd.append("name", giftName.trim());
     fd.append("value", giftValue.trim());
+    fd.append("category", giftCategory);
     if (giftFile) fd.append("photo", giftFile);
 
     const url = editGift ? `/api/admin/gifts/${editGift.id}` : "/api/admin/gifts";
@@ -415,7 +435,7 @@ function AdminDashboard({
           </div>
           <div className="admin-stat">
             <span className="admin-stat-num">{brl(totalGifts)}</span>
-            <span className="admin-stat-label">em mimos</span>
+            <span className="admin-stat-label">em presentes</span>
           </div>
           <div className="admin-stat">
             <span className="admin-stat-num">{totalConfirmed}</span>
@@ -434,7 +454,7 @@ function AdminDashboard({
               className={`admin-tab ${tab === t ? "active" : ""}`}
               onClick={() => setTab(t)}
             >
-              {t === "gifts" ? "Mimos" : t === "reservations" ? "Reservas" : t === "rsvps" ? "Presenças" : "Registrar"}
+              {t === "gifts" ? "Presentes" : t === "reservations" ? "Presenteados" : t === "rsvps" ? "Presenças" : "Registrar"}
             </button>
           ))}
         </div>
@@ -443,38 +463,55 @@ function AdminDashboard({
           <p className="loading">Carregando…</p>
         ) : (
           <>
-            {/* --- Aba Mimos (gerenciamento de presentes) --- */}
+            {/* --- Aba Presentes (gerenciamento de presentes) --- */}
             {tab === "gifts" && (
               <div className="gift-manager">
                 <div className="gift-manager-list">
-                  {gifts.map((g) => (
-                    <div
-                      key={g.id}
-                      className={`gift-manager-item ${editGift?.id === g.id ? "active" : ""}`}
-                      onClick={() => startEditGift(g)}
-                    >
-                      <div className="gift-manager-thumb">
-                        {g.photo_url ? (
-                          <img src={g.photo_url} alt={g.name} />
-                        ) : (
-                          <span className="gift-manager-noimg">📦</span>
-                        )}
+                  {(() => {
+                    const allCategories = [...CATEGORIES, { key: MONEY_CATEGORY, label: "Dinheiro" }];
+                    const groups = allCategories.map((c) => ({
+                      label: c.label,
+                      items: gifts.filter((g) => g.category === c.key),
+                    })).filter((group) => group.items.length > 0);
+
+                    const known = new Set(allCategories.map((c) => c.key));
+                    const outros = gifts.filter((g) => !known.has(g.category));
+                    if (outros.length > 0) groups.push({ label: "Outros", items: outros });
+
+                    return groups.map((group) => (
+                      <div key={group.label} className="gift-manager-group">
+                        <h5 className="gift-manager-group-title">{group.label}</h5>
+                        {group.items.map((g) => (
+                          <div
+                            key={g.id}
+                            className={`gift-manager-item ${editGift?.id === g.id ? "active" : ""}`}
+                            onClick={() => startEditGift(g)}
+                          >
+                            <div className="gift-manager-thumb">
+                              {g.photo_url ? (
+                                <img src={g.photo_url} alt={g.name} />
+                              ) : (
+                                <span className="gift-manager-noimg">Sem foto</span>
+                              )}
+                            </div>
+                            <div className="gift-manager-info">
+                              <span className="gift-manager-name">{g.name}</span>
+                              <span className="gift-manager-value">
+                                {g.value != null ? brl(g.value) : "livre"}
+                              </span>
+                            </div>
+                            <button
+                              className="admin-del-btn"
+                              onClick={(e) => { e.stopPropagation(); deleteGift(g.id); }}
+                              title="Excluir presente"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                      <div className="gift-manager-info">
-                        <span className="gift-manager-name">{g.name}</span>
-                        <span className="gift-manager-value">
-                          {g.value != null ? brl(g.value) : "livre"}
-                        </span>
-                      </div>
-                      <button
-                        className="admin-del-btn"
-                        onClick={(e) => { e.stopPropagation(); deleteGift(g.id); }}
-                        title="Excluir presente"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
+                    ));
+                  })()}
                 </div>
 
                 <div className="gift-manager-form">
@@ -492,6 +529,16 @@ function AdminDashboard({
                     value={giftValue}
                     onChange={(e) => setGiftValue(e.target.value)}
                   />
+                  <select
+                    className="input"
+                    value={giftCategory}
+                    onChange={(e) => setGiftCategory(e.target.value)}
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c.key} value={c.key}>{c.label}</option>
+                    ))}
+                    <option value={MONEY_CATEGORY}>Presente em Dinheiro</option>
+                  </select>
                   <div className="gift-manager-photo">
                     <input type="file" accept="image/*" onChange={handleFileChange} />
                     {giftPreview && (
@@ -527,7 +574,7 @@ function AdminDashboard({
               </div>
             )}
 
-            {/* --- Aba Reservas --- */}
+            {/* --- Aba Presenteados --- */}
             {tab === "reservations" && (
               <div className="admin-table-wrap">
                 {dashboard && dashboard.reservations.length === 0 ? (
@@ -659,7 +706,7 @@ function AdminDashboard({
 
 /* ---------- Página inicial ---------- */
 function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () => void }) {
-  const [reservations, setReservations] = useState<Record<string, { name: string; amount: number; date: string }>>({});
+  const [reservations, setReservations] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [openGift, setOpenGift] = useState<{ id: string; name: string; value: number | null } | null>(null);
   const [thanks, setThanks] = useState<string | null>(null);
@@ -736,44 +783,97 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
       {/* LISTA DE PRESENTES */}
       <section className="section">
         <p className="eyebrow center">Com carinho</p>
-        <h2 className="section-title">Lista de Mimos</h2>
+        <h2 className="section-title">Lista de Presentes</h2>
         <Ornament />
         <p className="section-intro">
-          Escolha um mimo e envie um <strong>Pix simbólico</strong> no valor
-          correspondente — assim Sarah monta o enxoval do jeitinho que a bebê
-          precisa. O mimo escolhido fica registrado aqui para todos os convidados.
+          Escolha um presente e envie um Pix no valor
+          correspondente — assim {CONFIG.momName.split(" ")[0]} monta o enxoval
+          dos bebês do jeitinho que precisam. Assim que alguém presenteia, o
+          item aparece como já presenteado para os próximos convidados.
         </p>
 
         {loading ? (
           <p className="loading">Preparando a lista…</p>
         ) : (
-          <div className="gifts">
-            {gifts.map((g) => {
-              const r = reservations[g.id];
-              return (
-                <div key={g.id} className={`gift frame ${r ? "taken" : ""}`}>
-                  {g.photo_url && (
-                    <div className="gift-photo">
-                      <img src={g.photo_url} alt={g.name} />
-                    </div>
-                  )}
-                  <p className="gift-name">{g.name}</p>
-                  <p className="gift-value">
-                    {g.value ? brl(g.value) : "valor à sua escolha"}
-                  </p>
-                  {r ? (
-                    <p className="gift-taken">Presenteado por {r.name}</p>
-                  ) : (
-                    <button className="btn btn-outline" onClick={() => setOpenGift(g)}>
-                      Presentear via Pix
-                    </button>
-                  )}
+          (() => {
+            const listGifts = gifts.filter((g) => g.category !== MONEY_CATEGORY);
+            const groups = CATEGORIES.map((c) => ({
+              label: c.label,
+              items: listGifts.filter((g) => g.category === c.key),
+            })).filter((group) => group.items.length > 0);
+
+            const known = new Set(CATEGORIES.map((c) => c.key));
+            const outros = listGifts.filter((g) => !known.has(g.category));
+            if (outros.length > 0) groups.push({ label: OUTROS_LABEL, items: outros });
+
+            return groups.map((group) => (
+              <div key={group.label} className="gift-category">
+                <h3 className="gift-category-title">{group.label}</h3>
+                <div className="gifts">
+                  {group.items.map((g) => {
+                    const r = reservations[g.id];
+                    return (
+                      <div key={g.id} className={`gift frame ${r ? "taken" : ""}`}>
+                        {g.photo_url && (
+                          <div className="gift-photo">
+                            <img src={g.photo_url} alt={g.name} />
+                          </div>
+                        )}
+                        <p className="gift-name">{g.name}</p>
+                        <p className="gift-value">
+                          {g.value ? brl(g.value) : "valor à sua escolha"}
+                        </p>
+                        {r ? (
+                          <p className="gift-taken">Já presenteado, obrigada!</p>
+                        ) : (
+                          <button className="btn btn-outline" onClick={() => setOpenGift(g)}>
+                            Presentear via Pix
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            ));
+          })()
         )}
       </section>
+
+      {/* MIMO EM DINHEIRO */}
+      {(() => {
+        const moneyGifts = gifts.filter((g) => g.category === MONEY_CATEGORY);
+        if (loading || moneyGifts.length === 0) return null;
+        return (
+          <section className="section rose money-section">
+            <p className="eyebrow center">Se preferir</p>
+            <h2 className="section-title">Presente em Dinheiro</h2>
+            <Ornament />
+            <p className="section-intro">
+              Prefere contribuir livremente? Envie um Pix no valor que desejar
+              e ajude a preparar a chegada dos bebês.
+            </p>
+            <div className="gifts money-gifts">
+              {moneyGifts.map((g) => {
+                const r = reservations[g.id];
+                return (
+                  <div key={g.id} className={`gift money-gift frame ${r ? "taken" : ""}`}>
+                    <p className="gift-name">{g.name}</p>
+                    <p className="gift-value">valor à sua escolha</p>
+                    {r ? (
+                      <p className="gift-taken">Já presenteado, obrigada!</p>
+                    ) : (
+                      <button className="btn btn-solid" onClick={() => setOpenGift(g)}>
+                        Presentear via Pix
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* RSVP */}
       <section className="section rose">
@@ -813,6 +913,10 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
       <footer className="footer">
         <Ornament />
         <p>Com amor, aguardamos você — família Brandão</p>
+        <p className="footer-verse">
+          "Eu vos fui entregue desde o meu nascer, desde o ventre da minha
+          mãe vós sois o meu Deus." — Salmo 21, 11
+        </p>
         <button className="admin-link" onClick={onOpenAdmin}>
           admin
         </button>
@@ -909,7 +1013,7 @@ strong { font-weight: 500; }
 
 .eyebrow {
   text-transform: uppercase; letter-spacing: 0.42em; font-size: 12px;
-  font-weight: 400; color: var(--dourado); margin: 0 0 10px;
+  font-weight: 400; color: var(--dourado); margin: 0 auto 10px;
 }
 .eyebrow.center { text-align: center; }
 
@@ -948,7 +1052,7 @@ strong { font-weight: 500; }
 .rose > * { max-width: 1020px; margin-left: auto; margin-right: auto; }
 .section-title {
   font-family: 'Cormorant Garamond', serif; font-weight: 500;
-  font-size: clamp(32px, 5vw, 44px); text-align: center; margin: 0;
+  font-size: clamp(32px, 5vw, 44px); text-align: center; margin: 0 auto;
 }
 .section-intro {
   text-align: center; max-width: 580px; margin: 0 auto 44px; line-height: 1.75;
@@ -969,6 +1073,20 @@ strong { font-weight: 500; }
   margin: 0 0 6px;
 }
 .detail-sub { margin: 0; opacity: 0.75; }
+
+/* CATEGORIAS DE PRESENTES */
+.gift-category { margin-bottom: 48px; }
+.gift-category:last-child { margin-bottom: 0; }
+.gift-category-title {
+  font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500;
+  font-size: 24px; text-align: center; color: var(--rosa-antigo);
+  margin: 0 auto 20px;
+}
+
+/* MIMO EM DINHEIRO */
+.money-section { padding-top: 56px; padding-bottom: 56px; }
+.money-gifts { max-width: 420px; margin: 0 auto; grid-template-columns: 1fr; }
+.money-gift { background: #FFFDFB; border-width: 2px; }
 
 /* PRESENTES */
 .gifts { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
@@ -1025,6 +1143,10 @@ strong { font-weight: 500; }
 .footer p {
   font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 19px; margin: 0; opacity: 0.85;
+}
+.footer .footer-verse {
+  font-size: 14px; max-width: 420px; margin: 14px auto 0;
+  opacity: 0.65; line-height: 1.6;
 }
 
 /* MODAL */
@@ -1162,6 +1284,12 @@ strong { font-weight: 500; }
   flex: 1; display: flex; flex-direction: column; gap: 8px;
   max-height: 480px; overflow-y: auto;
 }
+.gift-manager-group { display: flex; flex-direction: column; gap: 8px; }
+.gift-manager-group-title {
+  font-family: 'Jost', sans-serif; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.2em; color: var(--dourado); margin: 10px 0 0; font-weight: 500;
+}
+.gift-manager-group:first-child .gift-manager-group-title { margin-top: 0; }
 .gift-manager-item {
   display: flex; align-items: center; gap: 12px;
   padding: 10px; border: 1px solid rgba(176,141,87,0.2); background: #FFFDFB;
@@ -1174,7 +1302,7 @@ strong { font-weight: 500; }
   background: var(--rose); display: flex; align-items: center; justify-content: center;
 }
 .gift-manager-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.gift-manager-noimg { font-size: 20px; }
+.gift-manager-noimg { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; text-align: center; }
 .gift-manager-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .gift-manager-name { font-size: 14px; font-weight: 400; }
 .gift-manager-value {
