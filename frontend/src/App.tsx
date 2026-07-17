@@ -1178,13 +1178,16 @@ strong { font-weight: 500; }
 .admin-summary { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-start; }
 .admin-stat {
   background: var(--rose); padding: 14px 20px; text-align: center;
-  min-width: 100px; display: flex; flex-direction: column; flex: 1; min-width: 120px;
+  min-width: 120px; display: flex; flex-direction: column; flex: 1;
 }
 .admin-stat-num {
   font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 500;
   color: var(--tinta);
 }
-.admin-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.3em; color: var(--dourado); }
+.admin-stat-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.3em; color: var(--dourado);
+  overflow-wrap: break-word;
+}
 
 .admin-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--dourado); margin-top: 4px; }
 .admin-tab {
@@ -1218,8 +1221,9 @@ strong { font-weight: 500; }
 @media (max-width: 640px) {
   .admin-card { padding: 28px 20px; }
   .admin-summary { gap: 8px; }
-  .admin-stat { min-width: 80px; padding: 12px 10px; }
+  .admin-stat { min-width: 80px; padding: 12px 8px; }
   .admin-stat-num { font-size: 20px; }
+  .admin-stat-label { font-size: 9px; letter-spacing: 0.02em; }
   .admin-table th, .admin-table td { padding: 8px 6px; font-size: 12px; }
   .admin-tab { font-size: 10px; letter-spacing: 0.06em; padding: 10px 4px; }
 }
