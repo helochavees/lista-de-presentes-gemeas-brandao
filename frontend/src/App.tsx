@@ -709,11 +709,6 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
           <h1 className="mom-name">Himari e Reinah</h1>
           <Ornament />
           <p className="hero-sub">{CONFIG.babyLine}</p>
-          <p className="hero-meta">
-            {CONFIG.dateText} · {CONFIG.timeText}
-            <br />
-            {CONFIG.locationName}
-          </p>
         </div>
       </header>
 
@@ -984,7 +979,6 @@ strong { font-weight: 500; }
   font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 21px; margin: 6px 0 22px; color: var(--rosa-antigo);
 }
-.hero-meta { margin: 0; line-height: 1.7; letter-spacing: 0.08em; font-size: 15px; }
 
 /* ORNAMENTO */
 .ornament {
