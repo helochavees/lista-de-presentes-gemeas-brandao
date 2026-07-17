@@ -863,7 +863,7 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
         <p>Com amor, aguardamos você - família Brandão</p>
         <p className="footer-verse">
           "Eu vos fui entregue desde o meu nascer, desde o ventre da minha
-          mãe vós sois o meu Deus." - Salmo 21, 11
+          mãe vós sois o meu Deus." — Salmo 21, 11
         </p>
         <button className="admin-link" onClick={onOpenAdmin}>
           admin
