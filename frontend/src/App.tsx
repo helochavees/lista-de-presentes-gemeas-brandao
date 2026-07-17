@@ -1188,10 +1188,11 @@ strong { font-weight: 500; }
 
 .admin-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--dourado); margin-top: 4px; }
 .admin-tab {
-  flex: 1; background: none; border: none; padding: 10px 8px; cursor: pointer;
+  flex: 1; min-width: 0; background: none; border: none; padding: 10px 8px; cursor: pointer;
   font-family: 'Jost', sans-serif; font-size: 12px; text-transform: uppercase;
   letter-spacing: 0.15em; color: var(--rosa-antigo);
   border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .admin-tab.active { color: var(--tinta); border-bottom-color: var(--dourado); }
 .admin-tab:hover { color: var(--tinta); }
@@ -1220,6 +1221,7 @@ strong { font-weight: 500; }
   .admin-stat { min-width: 80px; padding: 12px 10px; }
   .admin-stat-num { font-size: 20px; }
   .admin-table th, .admin-table td { padding: 8px 6px; font-size: 12px; }
+  .admin-tab { font-size: 10px; letter-spacing: 0.06em; padding: 10px 4px; }
 }
 
 /* GIFT MANAGER (admin) */
