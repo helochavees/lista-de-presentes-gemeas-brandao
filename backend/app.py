@@ -68,7 +68,7 @@ DATA_DIR = _data_dir()
 
 app = Flask(__name__, static_folder=os.path.join(BASE_DIR, "static"), static_url_path="")
 
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "gemeas0609")
 _admin_tokens = set()
 
 DEFAULT_GIFTS = [

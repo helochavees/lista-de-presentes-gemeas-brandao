@@ -27,7 +27,7 @@ O site e um convite digital para o cha de bebe da Sarah. Quando alguem abre o li
 
 - No rodapé do site tem um link "admin"
 - Acessa pelo endereco do site + `/#admin` (ex: `http://localhost:5000/#admin`)
-- Senha padrao: `admin123`
+- Senha padrao: `gemeas0609`
 - Dentro do painel a Sarah pode:
   - **Mimos**: adicionar, editar e excluir presentes da lista (com foto!)
   - **Reservas**: ver quem presenteou o que, e excluir se precisar
@@ -68,7 +68,7 @@ Ele vai:
 - Abrir o site no navegador sozinho
 - Rodar o backend e o frontend ao mesmo tempo
 
-Para ver o painel de admin, acesse: **http://localhost:5173/#admin** (senha: `admin123`)
+Para ver o painel de admin, acesse: **http://localhost:5173/#admin** (senha: `gemeas0609`)
 
 Para parar, feche a janela preta que abriu ou aperte `Ctrl+C`.
 
@@ -92,7 +92,7 @@ npm run dev
 
 Depois abra o navegador em: **http://localhost:5173**
 
-Painel de admin: **http://localhost:5173/#admin** (senha: `admin123`)
+Painel de admin: **http://localhost:5173/#admin** (senha: `gemeas0609`)
 
 ---
 
@@ -108,10 +108,10 @@ Para parar, va em cada terminal e aperte `Ctrl + C`.
 Abra o arquivo `backend/app.py` e procure a linha:
 
 ```python
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "gemeas0609")
 ```
 
-Troque `admin123` pela senha que voce quiser.
+Troque `gemeas0609` pela senha que voce quiser.
 
 ### Alterar a chave Pix
 

@@ -111,7 +111,7 @@ Os presentes que aparecem quando o banco e criado pela primeira vez estao em `DE
 - **"Module not found"**: rodar `pip install flask` ou `npm install`
 - **"Port already in use"**: ja tem um servidor rodando, fechar a outra janela
 - **Foto nao aparece**: verificar se o arquivo existe em `backend/data/gifts/`
-- **Admin nao loga**: a senha e `admin123`, ou a que estiver em `ADMIN_PASSWORD` no `app.py`
+- **Admin nao loga**: a senha e `gemeas0609`, ou a que estiver em `ADMIN_PASSWORD` no `app.py`
 - **Build falha**: rodar `cd frontend && npm install` antes de `npm run build`
 
 ## Deploy (futuro)

@@ -59,7 +59,7 @@ echo.
 echo ============================================================
 echo   O site vai abrir no navegador automaticamente.
 echo   URL: http://localhost:5173
-echo   Admin: http://localhost:5173/#admin (senha: admin123)
+echo   Admin: http://localhost:5173/#admin (senha: gemeas0609)
 echo.
 echo   Para parar, feche esta janela ou aperte Ctrl+C
 echo ============================================================

@@ -32,7 +32,7 @@ Terminal 2: cd frontend → npm install → npm run dev
 ```
 
 - Site: http://localhost:5173
-- Admin: http://localhost:5173/#admin (senha: `admin123`)
+- Admin: http://localhost:5173/#admin (senha: `gemeas0609`)
 
 ## Estrutura do projeto
 
@@ -105,7 +105,7 @@ O convidado copia esse codigo e cola no app do banco. O valor ja vem preenchido.
 
 ## Painel de Admin
 
-Acessa por `http://localhost:5173/#admin` (senha: `admin123`)
+Acessa por `http://localhost:5173/#admin` (senha: `gemeas0609`)
 
 **Abas:**
 - **Mimos**: adicionar, editar e excluir presentes (com foto)
