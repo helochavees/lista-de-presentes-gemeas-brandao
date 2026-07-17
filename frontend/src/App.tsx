@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 /* ============================================================
-   ✏️  CONFIGURAÇÃO — edite apenas esta parte!
+   ✏️  CONFIGURAÇÃO - edite apenas esta parte!
    ============================================================ */
 const CONFIG = {
   momName: "Sarah Brandão",
@@ -9,7 +9,7 @@ const CONFIG = {
   dateText: "Domingo, 06 de setembro",
   timeText: "16 horas",
   locationName: "Alphaville Eusébio",
-  locationAddress: "Eusébio — Ceará",
+  locationAddress: "Eusébio - Ceará",
   pixKey: "SUA-CHAVE-PIX-AQUI",
   pixReceiverName: "Sarah Brandao",
   pixCity: "Eusebio",
@@ -193,7 +193,7 @@ function GiftModal({
             <p className="modal-value">{brl(amount)}</p>
             <p className="modal-text">
               No app do seu banco, escolha <strong>Pix → Copia e Cola</strong> e
-              cole o código abaixo — o valor já vai preenchido:
+              cole o código abaixo - o valor já vai preenchido:
             </p>
             <div className="pix-box">
               <code>{pixCode}</code>
@@ -401,7 +401,7 @@ function AdminDashboard({
         <div className="admin-header">
           <div className="admin-title">
             <p className="modal-eyebrow">Painel de Administração</p>
-            <h3 className="modal-title">Chá de Bebê — Sarah Brandão</h3>
+            <h3 className="modal-title">Chá de Bebê - Sarah Brandão</h3>
           </div>
           <button className="btn btn-outline admin-logout" onClick={onLogout}>
             Sair
@@ -497,7 +497,7 @@ function AdminDashboard({
                   />
                   <input
                     className="input"
-                    placeholder="Valor (R$) — vazio = livre"
+                    placeholder="Valor (R$) - vazio = livre"
                     inputMode="decimal"
                     value={giftValue}
                     onChange={(e) => setGiftValue(e.target.value)}
@@ -604,7 +604,7 @@ function AdminDashboard({
             {tab === "register" && (
               <div className="admin-register">
                 <p className="modal-text">
-                  Registre manualmente um presente — útil quando alguém entrega em mãos.
+                  Registre manualmente um presente - útil quando alguém entrega em mãos.
                 </p>
                 <select
                   className="input admin-select"
@@ -740,7 +740,7 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
         <Ornament />
         <p className="section-intro">
           Escolha um presente e envie um Pix no valor
-          correspondente — assim {CONFIG.momName.split(" ")[0]} monta o enxoval
+          correspondente - assim {CONFIG.momName.split(" ")[0]} monta o enxoval
           dos bebês do jeitinho que precisam. Assim que alguém presenteia, o
           item aparece como já presenteado para os próximos convidados.
         </p>
@@ -860,10 +860,10 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
 
       <footer className="footer">
         <Ornament />
-        <p>Com amor, aguardamos você — família Brandão</p>
+        <p>Com amor, aguardamos você - família Brandão</p>
         <p className="footer-verse">
           "Eu vos fui entregue desde o meu nascer, desde o ventre da minha
-          mãe vós sois o meu Deus." — Salmo 21, 11
+          mãe vós sois o meu Deus." - Salmo 21, 11
         </p>
         <button className="admin-link" onClick={onOpenAdmin}>
           admin
