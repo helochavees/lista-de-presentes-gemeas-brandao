@@ -952,7 +952,7 @@ const css = `
 * { box-sizing: border-box; }
 .page {
   --porcelana: #FBF7F4; --rose: #F1E3DF; --rosa-antigo: #C89B94;
-  --dourado: #B08D57; --tinta: #3C2F2F;
+  --dourado: #B76E79; --tinta: #3C2F2F;
   font-family: 'Jost', sans-serif; font-weight: 300;
   color: var(--tinta); background: var(--porcelana); min-height: 100vh;
   font-size: 16.5px; letter-spacing: 0.01em;
@@ -973,7 +973,7 @@ strong { font-weight: 500; }
 }
 .hero-frame::after {
   content: ""; position: absolute; inset: 7px;
-  border: 1px solid rgba(176,141,87,0.45); pointer-events: none;
+  border: 1px solid rgba(183,110,121,0.45); pointer-events: none;
 }
 .mom-name {
   font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500;
@@ -1130,7 +1130,7 @@ strong { font-weight: 500; }
 }
 .pix-box {
   background: var(--rose); padding: 14px; width: 100%;
-  max-height: 110px; overflow-y: auto; border: 1px solid rgba(176,141,87,0.4);
+  max-height: 110px; overflow-y: auto; border: 1px solid rgba(183,110,121,0.4);
 }
 .pix-box code { font-size: 11px; word-break: break-all; color: var(--tinta); }
 
@@ -1170,7 +1170,7 @@ strong { font-weight: 500; }
 .admin-header {
   display: flex; justify-content: space-between; align-items: flex-start;
   flex-wrap: wrap; gap: 16px;
-  border-bottom: 1px solid rgba(176,141,87,0.25); padding-bottom: 16px;
+  border-bottom: 1px solid rgba(183,110,121,0.25); padding-bottom: 16px;
 }
 .admin-title { text-align: left; }
 .admin-logout { padding: 8px 18px; font-size: 11px; letter-spacing: 0.18em; align-self: flex-start; }
@@ -1206,7 +1206,7 @@ strong { font-weight: 500; }
   color: var(--dourado); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--dourado);
   position: sticky; top: 0; background: #FFFDFB;
 }
-.admin-table td { padding: 8px 10px; border-bottom: 1px solid rgba(176,141,87,0.2); }
+.admin-table td { padding: 8px 10px; border-bottom: 1px solid rgba(183,110,121,0.2); }
 .admin-del-btn {
   background: none; border: none; cursor: pointer; color: var(--rosa-antigo);
   font-size: 12px; padding: 2px 6px; opacity: 0.6; transition: opacity 0.15s;
@@ -1242,7 +1242,7 @@ strong { font-weight: 500; }
 .gift-manager-group:first-child .gift-manager-group-title { margin-top: 0; }
 .gift-manager-item {
   display: flex; align-items: center; gap: 12px;
-  padding: 10px; border: 1px solid rgba(176,141,87,0.2); background: #FFFDFB;
+  padding: 10px; border: 1px solid rgba(183,110,121,0.2); background: #FFFDFB;
   cursor: pointer; transition: border-color 0.15s, background 0.15s;
 }
 .gift-manager-item:hover { border-color: var(--dourado); }
