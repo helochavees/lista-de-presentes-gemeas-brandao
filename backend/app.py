@@ -2,12 +2,54 @@ import os
 import sys
 import uuid
 import secrets
-import sqlite3
+import libsql
 import webbrowser
 import threading
 from datetime import datetime, timezone
 from functools import wraps
 from flask import Flask, request, jsonify, g, send_from_directory
+
+TURSO_DATABASE_URL = os.environ.get("TURSO_DATABASE_URL")
+TURSO_AUTH_TOKEN = os.environ.get("TURSO_AUTH_TOKEN")
+
+
+class _Row(dict):
+    """dict that also supports positional access, like sqlite3.Row."""
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return list(self.values())[key]
+        return super().__getitem__(key)
+
+
+class _Cursor:
+    def __init__(self, cursor):
+        self._cursor = cursor
+
+    def _columns(self):
+        return [d[0] for d in self._cursor.description] if self._cursor.description else []
+
+    def fetchone(self):
+        row = self._cursor.fetchone()
+        return _Row(zip(self._columns(), row)) if row is not None else None
+
+    def fetchall(self):
+        cols = self._columns()
+        return [_Row(zip(cols, row)) for row in self._cursor.fetchall()]
+
+
+class _DB:
+    """Thin wrapper so libsql rows support dict-style access like sqlite3.Row."""
+    def __init__(self, conn):
+        self._conn = conn
+
+    def execute(self, sql, params=()):
+        return _Cursor(self._conn.execute(sql, params))
+
+    def commit(self):
+        self._conn.commit()
+
+    def close(self):
+        self._conn.close()
 
 
 def _base_dir():
@@ -192,11 +234,15 @@ def _ensure_default_gifts(db):
 
 def get_db():
     if "db" not in g:
-        os.makedirs(DATA_DIR, exist_ok=True)
         os.makedirs(PHOTOS_DIR, exist_ok=True)
-        db = sqlite3.connect(os.path.join(DATA_DIR, "cha.db"))
-        db.row_factory = sqlite3.Row
-        db.execute("PRAGMA journal_mode=WAL")
+        if TURSO_DATABASE_URL:
+            raw = libsql.connect(database=TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN or "")
+        else:
+            os.makedirs(DATA_DIR, exist_ok=True)
+            raw = libsql.connect(os.path.join(DATA_DIR, "cha.db"))
+        db = _DB(raw)
+        if not TURSO_DATABASE_URL:
+            db.execute("PRAGMA journal_mode=WAL")
         db.execute("""
             CREATE TABLE IF NOT EXISTS gifts (
                 id TEXT PRIMARY KEY,
@@ -208,7 +254,7 @@ def get_db():
         try:
             db.execute("ALTER TABLE gifts ADD COLUMN category TEXT NOT NULL DEFAULT ''")
             db.commit()
-        except sqlite3.OperationalError:
+        except ValueError:
             pass
         db.execute("""
             CREATE TABLE IF NOT EXISTS reservations (
@@ -427,7 +473,7 @@ def admin_create_gift():
             "INSERT INTO gifts (id, name, value, category) VALUES (?, ?, ?, ?)",
             (gift_id, name, value, category),
         )
-    except sqlite3.IntegrityError:
+    except ValueError:
         return jsonify({"error": "Ja existe um presente com esse id"}), 409
 
     photo = request.files.get("photo")
