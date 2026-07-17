@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
    ✏️  CONFIGURAÇÃO - edite apenas esta parte!
    ============================================================ */
 const CONFIG = {
-  momName: "Sarah Brandão",
+  momName: "Himari e Reinah",
   babyLine: "Celebrando a chegada das nossas princesas",
   dateText: "Domingo, 06 de setembro",
   timeText: "16 horas",
@@ -401,7 +401,7 @@ function AdminDashboard({
         <div className="admin-header">
           <div className="admin-title">
             <p className="modal-eyebrow">Painel de Administração</p>
-            <h3 className="modal-title">Chá de Bebê - Sarah Brandão</h3>
+            <h3 className="modal-title">Chá de Bebê - Himari e Reinah</h3>
           </div>
           <button className="btn btn-outline admin-logout" onClick={onLogout}>
             Sair
@@ -706,7 +706,7 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
       <header className="hero">
         <div className="hero-frame">
           <p className="eyebrow">Chá de bebê</p>
-          <h1 className="mom-name">Sarah Brandão</h1>
+          <h1 className="mom-name">Himari e Reinah</h1>
           <Ornament />
           <p className="hero-sub">{CONFIG.babyLine}</p>
           <p className="hero-meta">
@@ -740,8 +740,8 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
         <Ornament />
         <p className="section-intro">
           Escolha um presente e envie um Pix no valor
-          correspondente - assim {CONFIG.momName.split(" ")[0]} monta o enxoval
-          dos bebês do jeitinho que precisam. Assim que alguém presenteia, o
+          correspondente - assim preparamos o enxoval de {CONFIG.momName} do
+          jeitinho que elas precisam. Assim que alguém presenteia, o
           item aparece como já presenteado para os próximos convidados.
         </p>
 
