@@ -951,8 +951,8 @@ const css = `
 
 * { box-sizing: border-box; }
 .page {
-  --porcelana: #FBF7F4; --rose: #F1E3DF; --rosa-antigo: #C89B94;
-  --dourado: #B08D57; --tinta: #3C2F2F;
+  --porcelana: #FBF7F4; --rose: #F5F0E3; --rosa-antigo: #D8BD7E;
+  --dourado: #C9A227; --tinta: #3C2F2F;
   font-family: 'Jost', sans-serif; font-weight: 300;
   color: var(--tinta); background: var(--porcelana); min-height: 100vh;
   font-size: 16.5px; letter-spacing: 0.01em;
@@ -973,12 +973,12 @@ strong { font-weight: 500; }
 }
 .hero-frame::after {
   content: ""; position: absolute; inset: 7px;
-  border: 1px solid rgba(176,141,87,0.45); pointer-events: none;
+  border: 1px solid rgba(201,162,39,0.45); pointer-events: none;
 }
 .mom-name {
   font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500;
   font-size: clamp(44px, 9vw, 76px); line-height: 1.08; margin: 0;
-  color: var(--tinta);
+  color: var(--dourado);
 }
 .hero-sub {
   font-family: 'Cormorant Garamond', serif; font-style: italic;
@@ -1001,6 +1001,7 @@ strong { font-weight: 500; }
 .section-title {
   font-family: 'Cormorant Garamond', serif; font-weight: 500;
   font-size: clamp(32px, 5vw, 44px); text-align: center; margin: 0 auto;
+  color: var(--dourado);
 }
 .section-intro {
   text-align: center; max-width: 580px; margin: 0 auto 44px; line-height: 1.75;
@@ -1068,8 +1069,8 @@ strong { font-weight: 500; }
 }
 .btn:focus-visible { outline: 2px solid var(--tinta); outline-offset: 3px; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-solid { background: var(--tinta); color: #FBF7F4; border: 1px solid var(--tinta); }
-.btn-solid:hover:not(:disabled) { background: var(--rosa-antigo); border-color: var(--rosa-antigo); }
+.btn-solid { background: var(--dourado); color: #FBF7F4; border: 1px solid var(--dourado); }
+.btn-solid:hover:not(:disabled) { background: var(--tinta); border-color: var(--tinta); }
 .btn-outline { background: transparent; color: var(--tinta); border: 1px solid var(--dourado); }
 .btn-outline:hover:not(:disabled) { background: var(--dourado); color: #FBF7F4; }
 
