@@ -500,19 +500,22 @@ def static_files(path):
 
 
 if __name__ == "__main__":
-    port = 5000
+    port = int(os.environ.get("PORT", 5000))
     has_static_build = os.path.exists(os.path.join(app.static_folder, "index.html"))
 
-    if has_static_build:
+    if port == 5000 and has_static_build:
         def open_browser():
             webbrowser.open(f"http://localhost:{port}")
 
         threading.Timer(1.0, open_browser).start()
         print(f"\n  Cha de Bebe — Sarah Brandao")
         print(f"  http://localhost:{port}\n")
-    else:
+    elif port == 5000:
         print(f"\n  Cha de Bebe — Sarah Brandao (backend/API)")
         print(f"  API rodando em http://localhost:{port}")
         print(f"  Abra o site em http://localhost:5173\n")
+    else:
+        print(f"\n  Cha de Bebe — Sarah Brandao")
+        print(f"  http://localhost:{port}\n")
 
-    app.run(debug=False, port=port)
+    app.run(debug=False, host="0.0.0.0", port=port)
