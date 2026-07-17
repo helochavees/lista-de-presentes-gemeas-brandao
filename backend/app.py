@@ -65,7 +65,6 @@ def _data_dir():
 
 BASE_DIR = _base_dir()
 DATA_DIR = _data_dir()
-PHOTOS_DIR = os.path.join(DATA_DIR, "gifts")
 
 app = Flask(__name__, static_folder=os.path.join(BASE_DIR, "static"), static_url_path="")
 
@@ -217,10 +216,6 @@ DEFAULT_GIFTS = [
 ]
 
 
-def _photo_path(gift_id: str):
-    return os.path.join(PHOTOS_DIR, f"{gift_id}.jpg")
-
-
 def _ensure_default_gifts(db):
     count = db.execute("SELECT COUNT(*) FROM gifts").fetchone()[0]
     if count == 0:
@@ -234,7 +229,6 @@ def _ensure_default_gifts(db):
 
 def get_db():
     if "db" not in g:
-        os.makedirs(PHOTOS_DIR, exist_ok=True)
         if TURSO_DATABASE_URL:
             raw = libsql.connect(database=TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN or "")
         else:
@@ -433,7 +427,6 @@ def _gift_response(row):
         "name": row["name"],
         "value": row["value"],
         "category": row["category"],
-        "photo_url": f"/api/gifts/{row['id']}/photo" if os.path.exists(_photo_path(row["id"])) else None,
     }
 
 
@@ -442,14 +435,6 @@ def get_gifts():
     db = get_db()
     rows = db.execute("SELECT id, name, value, category FROM gifts ORDER BY id").fetchall()
     return jsonify({"gifts": [_gift_response(r) for r in rows]})
-
-
-@app.route("/api/gifts/<gift_id>/photo", methods=["GET"])
-def get_gift_photo(gift_id):
-    path = _photo_path(gift_id)
-    if not os.path.exists(path):
-        return jsonify({"error": "Foto nao encontrada"}), 404
-    return send_from_directory(PHOTOS_DIR, f"{gift_id}.jpg")
 
 
 @app.route("/api/admin/gifts", methods=["POST"])
@@ -476,10 +461,6 @@ def admin_create_gift():
     except ValueError:
         return jsonify({"error": "Ja existe um presente com esse id"}), 409
 
-    photo = request.files.get("photo")
-    if photo and photo.filename and photo.content_type and photo.content_type.startswith("image/"):
-        photo.save(_photo_path(gift_id))
-
     db.commit()
     row = db.execute("SELECT id, name, value, category FROM gifts WHERE id = ?", (gift_id,)).fetchone()
     return jsonify(_gift_response(row)), 201
@@ -503,22 +484,9 @@ def admin_update_gift(gift_id):
 
     db.execute("UPDATE gifts SET name = ?, value = ?, category = ? WHERE id = ?", (name, value, category, gift_id))
 
-    photo = request.files.get("photo")
-    if photo and photo.filename and photo.content_type and photo.content_type.startswith("image/"):
-        photo.save(_photo_path(gift_id))
-
     db.commit()
     row = db.execute("SELECT id, name, value, category FROM gifts WHERE id = ?", (gift_id,)).fetchone()
     return jsonify(_gift_response(row))
-
-
-@app.route("/api/admin/gifts/<gift_id>/photo", methods=["DELETE"])
-@_require_admin
-def admin_delete_gift_photo(gift_id):
-    path = _photo_path(gift_id)
-    if os.path.exists(path):
-        os.remove(path)
-    return jsonify({"ok": True})
 
 
 @app.route("/api/admin/gifts/<gift_id>", methods=["DELETE"])
@@ -527,9 +495,6 @@ def admin_delete_gift(gift_id):
     db = get_db()
     db.execute("DELETE FROM gifts WHERE id = ?", (gift_id,))
     db.commit()
-    path = _photo_path(gift_id)
-    if os.path.exists(path):
-        os.remove(path)
     return jsonify({"ok": True})
 
 

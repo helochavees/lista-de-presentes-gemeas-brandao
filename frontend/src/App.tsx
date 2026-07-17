@@ -20,7 +20,6 @@ type Gift = {
   name: string;
   value: number | null;
   category: string;
-  photo_url: string | null;
 };
 
 /* Categorias da lista de presentes (ordem de exibição) */
@@ -295,8 +294,6 @@ function AdminDashboard({
   const [giftName, setGiftName] = useState("");
   const [giftValue, setGiftValue] = useState("");
   const [giftCategory, setGiftCategory] = useState(CATEGORIES[0].key);
-  const [giftFile, setGiftFile] = useState<File | null>(null);
-  const [giftPreview, setGiftPreview] = useState<string | null>(null);
   const [giftSaving, setGiftSaving] = useState(false);
   const [giftError, setGiftError] = useState<string | null>(null);
 
@@ -360,8 +357,6 @@ function AdminDashboard({
     setGiftName("");
     setGiftValue("");
     setGiftCategory(CATEGORIES[0].key);
-    setGiftFile(null);
-    setGiftPreview(null);
     setGiftError(null);
   };
 
@@ -370,21 +365,7 @@ function AdminDashboard({
     setGiftName(g.name);
     setGiftValue(g.value != null ? String(g.value) : "");
     setGiftCategory(g.category || CATEGORIES[0].key);
-    setGiftFile(null);
-    setGiftPreview(g.photo_url || null);
     setGiftError(null);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setGiftFile(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setGiftPreview(ev.target?.result as string);
-      reader.readAsDataURL(file);
-    } else if (!editGift?.photo_url) {
-      setGiftPreview(null);
-    }
   };
 
   const saveGift = async () => {
@@ -394,7 +375,6 @@ function AdminDashboard({
     fd.append("name", giftName.trim());
     fd.append("value", giftValue.trim());
     fd.append("category", giftCategory);
-    if (giftFile) fd.append("photo", giftFile);
 
     const url = editGift ? `/api/admin/gifts/${editGift.id}` : "/api/admin/gifts";
     const method = editGift ? "PUT" : "POST";
@@ -487,13 +467,6 @@ function AdminDashboard({
                             className={`gift-manager-item ${editGift?.id === g.id ? "active" : ""}`}
                             onClick={() => startEditGift(g)}
                           >
-                            <div className="gift-manager-thumb">
-                              {g.photo_url ? (
-                                <img src={g.photo_url} alt={g.name} />
-                              ) : (
-                                <span className="gift-manager-noimg">Sem foto</span>
-                              )}
-                            </div>
                             <div className="gift-manager-info">
                               <span className="gift-manager-name">{g.name}</span>
                               <span className="gift-manager-value">
@@ -539,26 +512,6 @@ function AdminDashboard({
                     ))}
                     <option value={MONEY_CATEGORY}>Presente em Dinheiro</option>
                   </select>
-                  <div className="gift-manager-photo">
-                    <input type="file" accept="image/*" onChange={handleFileChange} />
-                    {giftPreview && (
-                      <div className="gift-preview-wrap">
-                        <img src={giftPreview} alt="preview" className="gift-preview-img" />
-                        <button
-                          className="admin-del-btn"
-                          onClick={() => {
-                            setGiftFile(null);
-                            setGiftPreview(null);
-                            if (editGift) {
-                              fetch(`/api/admin/gifts/${editGift.id}/photo`, { method: "DELETE", headers: authHeaders });
-                            }
-                          }}
-                        >
-                          ✕ remover foto
-                        </button>
-                      </div>
-                    )}
-                  </div>
                   {giftError && <p className="admin-error">{giftError}</p>}
                   <div className="gift-manager-actions">
                     <button className="btn btn-solid" disabled={!giftName.trim() || giftSaving} onClick={saveGift}>
@@ -814,11 +767,6 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
                     const r = reservations[g.id];
                     return (
                       <div key={g.id} className={`gift frame ${r ? "taken" : ""}`}>
-                        {g.photo_url && (
-                          <div className="gift-photo">
-                            <img src={g.photo_url} alt={g.name} />
-                          </div>
-                        )}
                         <p className="gift-name">{g.name}</p>
                         <p className="gift-value">
                           {g.value ? brl(g.value) : "valor à sua escolha"}
@@ -1274,10 +1222,6 @@ strong { font-weight: 500; }
   .admin-table th, .admin-table td { padding: 8px 6px; font-size: 12px; }
 }
 
-/* GIFT PHOTO (landing page) */
-.gift-photo { width: 100%; aspect-ratio: 4/3; overflow: hidden; background: var(--rose); }
-.gift-photo img { width: 100%; height: 100%; object-fit: cover; }
-
 /* GIFT MANAGER (admin) */
 .gift-manager { display: flex; gap: 24px; width: 100%; }
 .gift-manager-list {
@@ -1297,12 +1241,6 @@ strong { font-weight: 500; }
 }
 .gift-manager-item:hover { border-color: var(--dourado); }
 .gift-manager-item.active { border-color: var(--dourado); background: var(--rose); }
-.gift-manager-thumb {
-  width: 48px; height: 48px; flex-shrink: 0; overflow: hidden;
-  background: var(--rose); display: flex; align-items: center; justify-content: center;
-}
-.gift-manager-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.gift-manager-noimg { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; text-align: center; }
 .gift-manager-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .gift-manager-name { font-size: 14px; font-weight: 400; }
 .gift-manager-value {
@@ -1315,12 +1253,6 @@ strong { font-weight: 500; }
   font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; margin: 0;
 }
 .gift-manager-form .input { width: 100%; min-width: auto; }
-.gift-manager-photo { display: flex; flex-direction: column; gap: 8px; }
-.gift-manager-photo input[type="file"] {
-  font-family: 'Jost', sans-serif; font-size: 13px; color: var(--tinta);
-}
-.gift-preview-wrap { display: flex; align-items: center; gap: 10px; }
-.gift-preview-img { width: 80px; height: 80px; object-fit: cover; border: 1px solid var(--dourado); }
 .gift-manager-actions { display: flex; gap: 10px; }
 @media (max-width: 700px) {
   .gift-manager { flex-direction: column; }
