@@ -10,7 +10,7 @@ const CONFIG = {
   timeText: "16 horas",
   locationName: "Alphaville Eusébio",
   locationAddress: "Eusébio - Ceará",
-  pixKey: "SUA-CHAVE-PIX-AQUI",
+  pixKey: "415571fd-ac3c-4762-9605-6d127e781747",
   pixReceiverName: "Sarah Brandao",
   pixCity: "Eusebio",
 };
