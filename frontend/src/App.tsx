@@ -277,7 +277,7 @@ function AdminDashboard({
   onGiftsChange: () => void;
 }) {
   const [dashboard, setDashboard] = useState<{
-    reservations: { gift_id: string; guest_name: string; amount: number; created_at: string }[];
+    reservations: { id: number; gift_id: string; guest_name: string; amount: number; created_at: string }[];
     rsvps: { id: number; name: string; people: number; created_at: string }[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -310,8 +310,8 @@ function AdminDashboard({
 
   useEffect(() => { loadDashboard(); }, []);
 
-  const deleteReservation = async (giftId: string) => {
-    await fetch(`/api/admin/reservations/${giftId}`, { method: "DELETE", headers: authHeaders });
+  const deleteReservation = async (resId: number) => {
+    await fetch(`/api/admin/reservations/${resId}`, { method: "DELETE", headers: authHeaders });
     loadDashboard();
   };
 
@@ -349,7 +349,7 @@ function AdminDashboard({
 
   const totalGifts = dashboard ? dashboard.reservations.reduce((s, r) => s + r.amount, 0) : 0;
   const totalConfirmed = dashboard ? dashboard.rsvps.reduce((s, r) => s + r.people, 0) : 0;
-  const availableGifts = gifts.filter((g) => !dashboard?.reservations.some((r) => r.gift_id === g.id));
+  const availableGifts = gifts.filter((g) => g.category === "fraldas" || !dashboard?.reservations.some((r) => r.gift_id === g.id));
 
   /* --- Gift management helpers --- */
   const startNewGift = () => {
@@ -547,13 +547,13 @@ function AdminDashboard({
                       {dashboard?.reservations.map((r) => {
                         const gift = gifts.find((g) => g.id === r.gift_id);
                         return (
-                          <tr key={r.gift_id}>
+                          <tr key={r.id}>
                             <td>{gift?.name ?? r.gift_id}</td>
                             <td>{r.guest_name}</td>
                             <td>{brl(r.amount)}</td>
                             <td>{new Date(r.created_at).toLocaleDateString("pt-BR")}</td>
                             <td>
-                              <button className="admin-del-btn" onClick={() => deleteReservation(r.gift_id)}>
+                              <button className="admin-del-btn" onClick={() => deleteReservation(r.id)}>
                                 ✕
                               </button>
                             </td>
@@ -617,7 +617,7 @@ function AdminDashboard({
                 >
                   <option value="">Escolha o presente…</option>
                   {gifts.map((g) => {
-                    const already = dashboard?.reservations.some((r) => r.gift_id === g.id);
+                    const already = g.category !== "fraldas" && dashboard?.reservations.some((r) => r.gift_id === g.id);
                     return (
                       <option key={g.id} value={g.id} disabled={already}>
                         {g.name} {already ? "(já presenteado)" : ""}
@@ -759,7 +759,8 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
                 <h3 className="gift-category-title">{group.label}</h3>
                 <div className="gifts">
                   {group.items.map((g) => {
-                    const r = reservations[g.id];
+                    const repeatable = g.category === "fraldas";
+                    const r = repeatable ? undefined : reservations[g.id];
                     return (
                       <div key={g.id} className={`gift frame ${r ? "taken" : ""}`}>
                         <p className="gift-name">{g.name}</p>

@@ -252,13 +252,35 @@ def get_db():
             pass
         db.execute("""
             CREATE TABLE IF NOT EXISTS reservations (
-                gift_id TEXT PRIMARY KEY,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                gift_id TEXT NOT NULL,
                 guest_name TEXT NOT NULL,
                 amount REAL NOT NULL,
                 created_at TEXT NOT NULL,
                 FOREIGN KEY (gift_id) REFERENCES gifts(id) ON DELETE CASCADE
             )
         """)
+        res_cols = [c["name"] for c in db.execute("PRAGMA table_info(reservations)").fetchall()]
+        if res_cols and "id" not in res_cols:
+            # Old schema had gift_id as PRIMARY KEY (one reservation per gift).
+            # Migrate so repeatable categories (e.g. fraldas) can have many.
+            db.execute("ALTER TABLE reservations RENAME TO reservations_old")
+            db.execute("""
+                CREATE TABLE reservations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    gift_id TEXT NOT NULL,
+                    guest_name TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (gift_id) REFERENCES gifts(id) ON DELETE CASCADE
+                )
+            """)
+            db.execute("""
+                INSERT INTO reservations (gift_id, guest_name, amount, created_at)
+                SELECT gift_id, guest_name, amount, created_at FROM reservations_old
+            """)
+            db.execute("DROP TABLE reservations_old")
+            db.commit()
         db.execute("""
             CREATE TABLE IF NOT EXISTS rsvps (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -298,7 +320,7 @@ def save_reservation():
 
     db = get_db()
     db.execute(
-        "INSERT OR REPLACE INTO reservations (gift_id, guest_name, amount, created_at) VALUES (?, ?, ?, ?)",
+        "INSERT INTO reservations (gift_id, guest_name, amount, created_at) VALUES (?, ?, ?, ?)",
         (gift_id, guest_name, amount, datetime.now(timezone.utc).isoformat()),
     )
     db.commit()
@@ -356,7 +378,7 @@ def admin_login():
 def admin_dashboard():
     db = get_db()
     res_rows = db.execute(
-        "SELECT gift_id, guest_name, amount, created_at FROM reservations ORDER BY created_at"
+        "SELECT id, gift_id, guest_name, amount, created_at FROM reservations ORDER BY created_at"
     ).fetchall()
     rsvp_rows = db.execute(
         "SELECT id, name, people, created_at FROM rsvps ORDER BY created_at"
@@ -364,6 +386,7 @@ def admin_dashboard():
     return jsonify({
         "reservations": [
             {
+                "id": r["id"],
                 "gift_id": r["gift_id"],
                 "guest_name": r["guest_name"],
                 "amount": r["amount"],
@@ -396,18 +419,18 @@ def admin_create_reservation():
 
     db = get_db()
     db.execute(
-        "INSERT OR REPLACE INTO reservations (gift_id, guest_name, amount, created_at) VALUES (?, ?, ?, ?)",
+        "INSERT INTO reservations (gift_id, guest_name, amount, created_at) VALUES (?, ?, ?, ?)",
         (gift_id, guest_name, amount, datetime.now(timezone.utc).isoformat()),
     )
     db.commit()
     return jsonify({"ok": True})
 
 
-@app.route("/api/admin/reservations/<gift_id>", methods=["DELETE"])
+@app.route("/api/admin/reservations/<int:res_id>", methods=["DELETE"])
 @_require_admin
-def admin_delete_reservation(gift_id):
+def admin_delete_reservation(res_id):
     db = get_db()
-    db.execute("DELETE FROM reservations WHERE gift_id = ?", (gift_id,))
+    db.execute("DELETE FROM reservations WHERE id = ?", (res_id,))
     db.commit()
     return jsonify({"ok": True})
 
