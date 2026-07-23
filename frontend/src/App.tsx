@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 const CONFIG = {
   momName: "Himari e Reinah",
   babyLine: "Celebrando a chegada das nossas princesas",
-  dateText: "Sexta, 04 de setembro",
+  dateText: "Sexta, 04 de Setembro",
   timeText: "19 horas",
   locationName: "Alphaville Eusébio",
   locationAddress: "Clube Terras 3, Alameda Mar e Sol, Eusébio - CE",
@@ -824,7 +824,7 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
         <h2 className="section-title">Confirmar Presença</h2>
         <Ornament />
         {rsvpDone ? (
-          <p className="rsvp-done">Presença confirmada. Até o dia 04 de setembro!</p>
+          <p className="rsvp-done">Presença confirmada. Até o dia 04 de Setembro!</p>
         ) : (
           <div className="rsvp">
             <input
