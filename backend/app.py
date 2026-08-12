@@ -521,6 +521,18 @@ def admin_delete_gift(gift_id):
     return jsonify({"ok": True})
 
 
+@app.route("/api/admin/gifts/reset", methods=["POST"])
+@_require_admin
+def admin_reset_gifts():
+    """Wipe the gifts catalog and reseed it from DEFAULT_GIFTS."""
+    db = get_db()
+    db.execute("DELETE FROM gifts")
+    db.commit()
+    _ensure_default_gifts(db)
+    row = db.execute("SELECT COUNT(*) FROM gifts").fetchone()
+    return jsonify({"ok": True, "count": row[0]})
+
+
 @app.route("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")
