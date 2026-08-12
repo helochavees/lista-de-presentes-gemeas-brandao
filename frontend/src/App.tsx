@@ -943,7 +943,7 @@ export default function ChaDeBebe() {
 
 /* ---------- Estilos ---------- */
 const css = `
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:wght@500;600&family=Jost:wght@300;400;500&display=swap');
 
 * { box-sizing: border-box; }
 .page {
@@ -972,7 +972,7 @@ strong { font-weight: 500; }
   border: 1px solid rgba(183,110,121,0.45); pointer-events: none;
 }
 .mom-name {
-  font-family: 'Cormorant Garamond', serif; font-weight: 500;
+  font-family: 'Playfair Display', 'Cormorant Garamond', serif; font-weight: 600;
   font-size: clamp(44px, 9vw, 76px); line-height: 1.08; margin: 0;
   color: var(--tinta);
 }
