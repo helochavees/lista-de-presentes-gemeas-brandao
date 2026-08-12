@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
    ✏️  CONFIGURAÇÃO - edite apenas esta parte!
    ============================================================ */
 const CONFIG = {
-  momName: "Himari e Reinah",
+  momName: "Gêmeas",
   babyLine: "Celebrando a chegada das nossas princesas",
   dateText: "Sexta, 04 de Setembro",
   timeText: "19 horas",
@@ -401,7 +401,7 @@ function AdminDashboard({
         <div className="admin-header">
           <div className="admin-title">
             <p className="modal-eyebrow">Painel de Administração</p>
-            <h3 className="modal-title">Chá de Bebê - Himari e Reinah</h3>
+            <h3 className="modal-title">Chá de Bebê - Gêmeas</h3>
           </div>
           <button className="btn btn-outline admin-logout" onClick={onLogout}>
             Sair
@@ -706,7 +706,7 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
       <header className="hero">
         <div className="hero-frame">
           <p className="eyebrow">Chá de bebê</p>
-          <h1 className="mom-name">Himari e Reinah</h1>
+          <h1 className="mom-name">Gêmeas</h1>
           <Ornament />
           <p className="hero-sub">{CONFIG.babyLine}</p>
         </div>
@@ -735,7 +735,7 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
         <Ornament />
         <p className="section-intro">
           Escolha um presente e envie um Pix no valor
-          correspondente - assim preparamos o enxoval de {CONFIG.momName} do
+          correspondente - assim preparamos o enxoval das gêmeas do
           jeitinho que elas precisam. Assim que alguém presenteia, o
           item aparece como já presenteado para os próximos convidados.
         </p>
