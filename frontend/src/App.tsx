@@ -972,7 +972,7 @@ strong { font-weight: 500; }
   border: 1px solid rgba(183,110,121,0.45); pointer-events: none;
 }
 .mom-name {
-  font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500;
+  font-family: 'Cormorant Garamond', serif; font-weight: 500;
   font-size: clamp(44px, 9vw, 76px); line-height: 1.08; margin: 0;
   color: var(--tinta);
 }
