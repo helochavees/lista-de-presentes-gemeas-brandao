@@ -401,7 +401,7 @@ function AdminDashboard({
         <div className="admin-header">
           <div className="admin-title">
             <p className="modal-eyebrow">Painel de Administração</p>
-            <h3 className="modal-title">Chá de Bebê - Gêmeas</h3>
+            <h3 className="modal-title">Chá de Bebê das Gêmeas</h3>
           </div>
           <button className="btn btn-outline admin-logout" onClick={onLogout}>
             Sair
@@ -705,7 +705,7 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
       {/* HERO */}
       <header className="hero">
         <div className="hero-frame">
-          <p className="eyebrow">Chá de bebê</p>
+          <p className="eyebrow">Chá de bebê das</p>
           <h1 className="mom-name">Gêmeas</h1>
           <Ornament />
           <p className="hero-sub">{CONFIG.babyLine}</p>
