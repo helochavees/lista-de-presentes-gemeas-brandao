@@ -8,7 +8,7 @@ const CONFIG = {
   babyLine: "Celebrando a chegada das nossas princesas",
   dateText: "Sexta, 04 de Setembro",
   timeText: "19 horas",
-  locationName: "Alphaville Eusébio",
+  locationName: "Cidade Alpha",
   locationAddress: "Clube Terras 3, Alameda Mar e Sol, Eusébio - CE",
   pixKey: "415571fd-ac3c-4762-9605-6d127e781747",
   pixReceiverName: "Sarah Brandao",
