@@ -349,7 +349,7 @@ function AdminDashboard({
 
   const totalGifts = dashboard ? dashboard.reservations.reduce((s, r) => s + r.amount, 0) : 0;
   const totalConfirmed = dashboard ? dashboard.rsvps.reduce((s, r) => s + r.people, 0) : 0;
-  const availableGifts = gifts.filter((g) => g.category === "fraldas" || !dashboard?.reservations.some((r) => r.gift_id === g.id));
+  const availableGifts = gifts.filter((g) => g.category === "fraldas" || g.category === MONEY_CATEGORY || !dashboard?.reservations.some((r) => r.gift_id === g.id));
 
   /* --- Gift management helpers --- */
   const startNewGift = () => {
@@ -617,7 +617,7 @@ function AdminDashboard({
                 >
                   <option value="">Escolha o presente…</option>
                   {gifts.map((g) => {
-                    const already = g.category !== "fraldas" && dashboard?.reservations.some((r) => r.gift_id === g.id);
+                    const already = g.category !== "fraldas" && g.category !== MONEY_CATEGORY && dashboard?.reservations.some((r) => r.gift_id === g.id);
                     return (
                       <option key={g.id} value={g.id} disabled={already}>
                         {g.name} {already ? "(já presenteado)" : ""}
@@ -798,22 +798,15 @@ function LandingPage({ gifts, onOpenAdmin }: { gifts: Gift[]; onOpenAdmin: () =>
               e ajude a preparar a chegada dos bebês.
             </p>
             <div className="gifts money-gifts">
-              {moneyGifts.map((g) => {
-                const r = reservations[g.id];
-                return (
-                  <div key={g.id} className={`gift money-gift frame ${r ? "taken" : ""}`}>
-                    <p className="gift-name">{g.name}</p>
-                    <p className="gift-value">valor à sua escolha</p>
-                    {r ? (
-                      <p className="gift-taken">Já presenteado, obrigada!</p>
-                    ) : (
-                      <button className="btn btn-solid" onClick={() => setOpenGift(g)}>
-                        Presentear via Pix
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
+              {moneyGifts.map((g) => (
+                <div key={g.id} className="gift money-gift frame">
+                  <p className="gift-name">{g.name}</p>
+                  <p className="gift-value">valor à sua escolha</p>
+                  <button className="btn btn-solid" onClick={() => setOpenGift(g)}>
+                    Presentear via Pix
+                  </button>
+                </div>
+              ))}
             </div>
           </section>
         );
